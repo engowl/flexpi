@@ -1,7 +1,10 @@
-import { createContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { flexpiPublicAPI } from "../api/flexpi.js";
 import { isSignedInAtom } from "../store/auth-store.js";
 import { useAtom } from "jotai";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { useSession } from "../hook/use-session.jsx";
+import toast from "react-hot-toast";
 
 const AuthContext = createContext({
   userData: {},
@@ -65,24 +68,16 @@ export default function AuthProvider({ children }) {
   }, [isReadyToSign, isSignedIn, isLoading, user]);
 
   useEffect(() => {
-    if (user && isLoaded) {
+    if (user) {
       console.log("is ready to sign");
       setIsReadyToSign(true);
     }
-  }, [user, isLoaded]);
-
-  useEffect(() => {
-    if (userData) {
-      if (userData.username === "") {
-        setOpen(true);
-      }
-    }
-  }, [userData]);
+  }, [user]);
 
   return (
     <AuthContext.Provider
       value={{
-        userData: userData || {},
+        // userData: userData || {},
       }}
     >
       {children}
