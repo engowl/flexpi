@@ -1,5 +1,6 @@
 import { NextUIProvider } from "@nextui-org/react";
 import DynamicProvider from "./DynamicProvider.jsx";
+import AuthProvider from "./AuthProvider.jsx";
 
 /**
  * NOTE
@@ -8,7 +9,9 @@ import DynamicProvider from "./DynamicProvider.jsx";
 export default function RootProvider({ children }) {
   return (
     <DynamicProvider>
-      <NextUIProvider>{children}</NextUIProvider>
+      <AuthProvider>
+        <NextUIProvider>{children}</NextUIProvider>
+      </AuthProvider>
     </DynamicProvider>
   );
 }
