@@ -12,18 +12,18 @@ export default function GetStartedDialog() {
       isKeyboardDismissDisabled={true}
       hideCloseButton
       placement="center"
-      size="xl"
+      size="lg"
       backdrop="blur"
     >
       <ModalContent className="flex flex-col rounded-3xl bg-white p-6">
         <div className="flex flex-col gap-5 w-full items-center justify-center">
-          <img src="/assets/flexpi-logo.png" className="w-32 md:w-44" />
+          <img src="/assets/flexpi-logo.png" className="w-32 md:w-40" />
 
-          <h1 className="text-3xl font-medium text-[#191919]">
-            Redefining APIs
+          <h1 className="text-xl font-medium text-[#191919]">
+            Redefining APIs, Simplifying Data
           </h1>
 
-          <p className="text-xs md:text-sm text-[#848484] text-center">
+          <p className="text-xs text-[#848484] text-center">
             Experience a smarter way to access data. FlexPI seamlessly combines
             blockchain and real-world insights, transforming how you create and
             use APIs
@@ -47,10 +47,10 @@ export default function GetStartedDialog() {
 function Feature({ ic, title, caption }) {
   return (
     <div className="flex flex-row gap-5">
-      <img src={ic} className="size-16 md:size-20" />
+      <img src={ic} className="size-16" />
       <div className="flex flex-col gap-2">
         <h1 className="text-black font-medium">{title}</h1>
-        <p className="text-[#848484] text-xs md:text-sm">{caption}</p>
+        <p className="text-[#848484] text-xs">{caption}</p>
       </div>
     </div>
   );
