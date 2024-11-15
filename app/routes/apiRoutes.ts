@@ -5,6 +5,7 @@ import { schemaToPrompt } from '../core/utils/schema';
 import { run } from "../core/FlexPiEngine";
 import { logAPICall } from "./helpers/logging";
 import { sleep } from "../utils/miscUtils";
+import { generateCallId } from "../utils/apiUtils";
 
 export const apiRoutes: FastifyPluginCallback = (
   app: FastifyInstance,
@@ -39,7 +40,10 @@ export const apiRoutes: FastifyPluginCallback = (
 
       const start = performance.now();
 
-      const res = await run(prompt);
+      const callId = generateCallId();
+      console.log('callId', callId);
+
+      const res = await run(prompt, callId);
       console.log('res', res);
 
       // DUMMY RETURN

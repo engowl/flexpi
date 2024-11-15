@@ -13,5 +13,12 @@ const generateApiKey = (): string => {
 
 export default generateApiKey;
 
+export const generateCallId = (): string => {
+  // create callId (alphanumeric characters), xxxx-xxxx-xxxx
+  const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 4);
+  const segments = Array.from({ length: 3 }, () => nanoid());
+  return segments.join('-');
+}
+
 // Usage example:
 // generateApiKey() // Output: flex-xK9f-pL2m-nR7q-tY3w

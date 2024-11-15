@@ -1,13 +1,4 @@
-// schema.ts
-
 import { Schema } from "../../types/common";
-
-export function schemaToPrompt(schema: Schema): string {
-  const { query, items } = schema;
-  let prompt = `Please answer the following in JSON format:\n${generateSchema(items)}\n\nAnswer in JSON format. JSON Answer:`;
-
-  return prompt;
-}
 
 interface SchemaItem {
   key: string;
@@ -18,107 +9,115 @@ interface SchemaItem {
   enabled?: boolean;
 }
 
-function generateSchema(items: SchemaItem[], indentLevel: number = 1): string {
-  // First generate the type definition
-  // const typeDefinition = `Type definition:\n{ ${items.map(item => {
-  //   if (item.isArray && item.dataType === 'object' && Array.isArray(item.subItems) && item.subItems.length > 0) {
-  //     return `"${item.key}": [{ ${item.subItems.map(sub =>
-  //       `"${sub.key}": ${sub.dataType}`
-  //     ).join(', ')} }]${item.description ? ` // ${item.description}` : ''}`
-  //   } else {
-  //     return `"${item.key}": ${item.dataType}${item.description ? ` // ${item.description}` : ''}`
-  //   }
-  // }).join(', ')} }\n\n`;
-
-  // First generate the TypeScript interface
-  const typeDefinition = `interface Response{
-      ${items.map(item => {
-    if (item.isArray && item.dataType === 'object' && Array.isArray(item.subItems) && item.subItems.length > 0) {
-      return `${item.key}: Array<{
-        ${item.subItems.map(sub =>
-        `${sub.key}: ${sub.dataType}; ${sub.description ? `// ${sub.description}` : ''}`
-      ).join('\n    ')}
-      }>;${item.description ? ` // ${item.description}` : ''}`
-    } else {
-      return `${item.key}: ${item.dataType};${item.description ? ` // ${item.description}` : ''}`
-    }
-  }).join('\n  ')}
-    }\n\n`;
-
-  // Then generate example with generic type examples
-  const indent = '  '.repeat(indentLevel);
-  let exampleStr = 'Example:\n{\n';
-
-  items.forEach((item) => {
-    exampleStr += `${indent}"${item.key}": `;
-
-    if (item.isArray) {
-      exampleStr += '[\n';
-      if (item.dataType === 'object' && Array.isArray(item.subItems) && item.subItems.length > 0) {
-        exampleStr += `${indent}  {\n`;
-        exampleStr += generateExampleValues(item.subItems, indentLevel + 2);
-        exampleStr += `${indent}  }`;
-        exampleStr += '\n' + indent + ']';
-      } else {
-        exampleStr += `${indent}  "${item.dataType}"\n${indent}]`;
-      }
-    } else if (item.dataType === 'object') {
-      if (Array.isArray(item.subItems) && item.subItems.length > 0) {
-        exampleStr += generateExampleValues(item.subItems, indentLevel + 1);
-      } else {
-        exampleStr += '{}';
-      }
-    } else {
-      // Generic examples based only on type
-      switch (item.dataType) {
-        case 'string':
-          exampleStr += '"example_string"';
-          break;
-        case 'number':
-          exampleStr += '0';
-          break;
-        case 'boolean':
-          exampleStr += 'false';
-          break;
-        default:
-          exampleStr += '""';
-      }
-    }
-
-    // Add comma and description if exists
-    exampleStr += item.description ? `, // ${item.description}` : ',';
-    exampleStr += '\n';
-  });
-
-  exampleStr += '}';
-
-  return typeDefinition + exampleStr;
+export function schemaToPrompt(schema: Schema): string {
+  const { query, items } = schema;
+  let prompt = `Please answer the following in JSON format:\n${generateSchema(items)}\n\nAnswer in JSON format. JSON Answer:`;
+  return prompt;
 }
 
-function generateExampleValues(items: SchemaItem[], indentLevel: number): string {
-  const indent = '  '.repeat(indentLevel);
-  let str = '';
+function generateSchema(items: SchemaItem[], indentLevel: number = 1): string {
+  // Generate the TypeScript interface with proper nested types
+  const typeDefinition = generateTypeDefinition(items);
+  
+  // Generate example with generic type examples
+  const exampleStr = generateExample(items, indentLevel);
+  
+  return typeDefinition + '\n\nExample:\n' + exampleStr;
+}
 
+function generateTypeDefinition(items: SchemaItem[]): string {
+  return `interface Response {
+  ${items.map(item => generateTypeForItem(item)).join('\n  ')}
+}`;
+}
+
+function generateTypeForItem(item: SchemaItem, indent: string = ''): string {
+  let typeStr = '';
+  
+  if (item.dataType === 'object' && item.subItems?.length) {
+    // For objects with subItems, create a nested interface
+    typeStr = `${item.key}: {
+    ${item.subItems.map(subItem => generateTypeForItem(subItem, '    ')).join('\n    ')}
+  }`;
+  } else {
+    // For primitive types or empty objects
+    typeStr = `${item.key}: ${item.dataType}`;
+  }
+  
+  // Handle arrays
+  if (item.isArray) {
+    typeStr = typeStr.replace(': ', '[] : ');
+  }
+  
+  // Add description as comment if it exists
+  if (item.description) {
+    typeStr += `; // ${item.description}`;
+  } else {
+    typeStr += ';';
+  }
+  
+  return indent + typeStr;
+}
+
+function generateExample(items: SchemaItem[], indentLevel: number): string {
+  const indent = '  '.repeat(indentLevel);
+  let str = '{\n';
+  
   items.forEach((item, index) => {
     str += `${indent}"${item.key}": `;
-
-    // Generic examples based only on type
-    switch (item.dataType) {
-      case 'string':
-        str += '"example_string"';
-        break;
-      case 'number':
-        str += '0';
-        break;
-      case 'boolean':
-        str += 'false';
-        break;
-      default:
-        str += '""';
+    
+    if (item.isArray) {
+      str += '[\n';
+      if (item.dataType === 'object' && item.subItems?.length) {
+        str += generateObjectExample(item.subItems, indentLevel + 2);
+        str += `${indent}]`;
+      } else {
+        str += `${indent}  ${generateExampleValue(item.dataType)}\n${indent}]`;
+      }
+    } else if (item.dataType === 'object' && item.subItems?.length) {
+      str += generateObjectExample(item.subItems, indentLevel + 1);
+    } else {
+      str += generateExampleValue(item.dataType);
     }
-
-    str += index < items.length - 1 ? ',\n' : '\n';
+    
+    // Add comma and description if exists
+    str += index < items.length - 1 ? ',' : '';
+    if (item.description) {
+      str += ` // ${item.description}`;
+    }
+    str += '\n';
   });
+  
+  return str + indent.slice(2) + '}';
+}
 
-  return str;
+function generateObjectExample(items: SchemaItem[], indentLevel: number): string {
+  const indent = '  '.repeat(indentLevel);
+  let str = '{\n';
+  
+  items.forEach((item, index) => {
+    str += `${indent}"${item.key}": ${generateExampleValue(item.dataType)}`;
+    str += index < items.length - 1 ? ',' : '';
+    if (item.description) {
+      str += ` // ${item.description}`;
+    }
+    str += '\n';
+  });
+  
+  return str + '  '.repeat(indentLevel - 1) + '}';
+}
+
+function generateExampleValue(dataType: string): string {
+  switch (dataType) {
+    case 'string':
+      return '"example_string"';
+    case 'number':
+      return '0';
+    case 'boolean':
+      return 'false';
+    case 'object':
+      return '{}';
+    default:
+      return '""';
+  }
 }

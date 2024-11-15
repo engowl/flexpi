@@ -30,6 +30,10 @@ fastify.register(userRoutes, {
   prefix: "/user",
 });
 
+fastify.register(apiRoutes, {
+  prefix: "/api",
+});
+
 fastify.get("/ping", async (request, reply) => {
   return "pong\n";
 });
