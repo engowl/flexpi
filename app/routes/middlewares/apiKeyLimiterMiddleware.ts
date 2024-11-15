@@ -1,7 +1,7 @@
 import { prismaClient } from "../../lib/prisma";
 
 export const apiKeyLimiterMiddleware = async (request: any, reply: any) => {
-  const apiKey = request.headers["Flex-api-key"];
+  const apiKey = request.headers["flex-api-key"];
 
   if (!apiKey) {
     return reply.status(401).send({ message: "API key is required" });
