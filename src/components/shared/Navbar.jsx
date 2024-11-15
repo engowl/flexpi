@@ -17,7 +17,7 @@ const Navbar = () => {
   const { isSignedIn } = useSession();
 
   return (
-    <div className="fixed z-50 top-0 w-screen flex justify-between items-center py-4 px-5 md:px-10 bg-white">
+    <div className="fixed z-50 top-0 w-screen flex justify-between items-center py-3 px-5 md:px-10 bg-white">
       <div className="flex gap-10 items-center">
         <Link to={"/"} className="w-16 md:w-24">
           <img

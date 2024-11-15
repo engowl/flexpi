@@ -29,6 +29,8 @@ export default function Experimental() {
 
   return (
     <div className="flex flex-col gap-5 w-full bg-primary/20 rounded-xl p-6">
+      <h1 className="font-bold text-2xl">Experimental</h1>
+
       <Button
         onClick={createApiKey}
         isLoading={isLoading}
