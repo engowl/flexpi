@@ -1,7 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
 import IndexPage from "../pages/IndexPage.jsx";
-import RootLayout from "../layouts/RootLayout.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
+import RootLayout from "../layouts/RootLayout.jsx";
+import RouteGuard from "../components/guard/RouteGuard.jsx";
+import RouteAuthLoginGuard from "../components/guard/RouteLoginGuard.jsx";
 import CreatePage from "../pages/CreatePage.jsx";
 
 export const router = createBrowserRouter([
@@ -11,11 +13,19 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <IndexPage />,
+        element: (
+          <RouteGuard>
+            <IndexPage />
+          </RouteGuard>
+        ),
       },
       {
         path: "login",
-        element: <LoginPage />,
+        element: (
+          <RouteAuthLoginGuard>
+            <LoginPage />
+          </RouteAuthLoginGuard>
+        ),
       },
       {
         path: "create",
