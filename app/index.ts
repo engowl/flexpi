@@ -14,7 +14,7 @@ const fastify = Fastify();
 fastify.register(FastifyCors, {
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "Flex-api-key"],
 });
 
 // Experimental Routes

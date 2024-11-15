@@ -17,8 +17,8 @@ model User {
   id String @id @default(cuid())
 
   isNewUser Boolean @default(true)
-  apiKey    String? @db.Text
 
+  apiKey    UserApiKey?
   wallet    UserWallet?
   apiCalls  ApiCall[]
   libraries Library[]
@@ -26,6 +26,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model UserWallet {
   id String @id @default(cuid())
@@ -41,6 +42,20 @@ model UserWallet {
   updatedAt DateTime @updatedAt
 }
 
+model UserApiKey {
+  id String @id @default(cuid())
+
+  key String @unique
+
+  usageCount  Int       @default(0)
+  maxLimit    Int       @default(1000) 
+
+  userId String @unique
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
 enum UserWalletType {
   EOA
