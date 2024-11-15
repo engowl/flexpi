@@ -5,6 +5,8 @@ import {
 } from "fastify";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JwksClient } from "jwks-rsa";
+import { prismaClient } from "../lib/prisma";
+import { UserWalletType } from "@prisma/client";
 
 export const authRoutes: FastifyPluginCallback = (
   app: FastifyInstance,
@@ -28,6 +30,8 @@ export const authRoutes: FastifyPluginCallback = (
 
   interface LoginRouteBody {
     token?: string;
+    address?: string;
+    walletType?: UserWalletType;
   }
 
   const jwksUrl = `https://app.dynamic.xyz/api/v0/sdk/${process.env.DYNAMIC_ENV_ID}/.well-known/jwks`;
@@ -43,10 +47,12 @@ export const authRoutes: FastifyPluginCallback = (
   app.post(
     "/login",
     async (request: FastifyRequest<{ Body: LoginRouteBody }>, reply) => {
-      const { token } = request.body;
+      const { token, address, walletType } = request.body;
 
-      if (!token) {
-        return reply.status(400).send("Please provide a token in field");
+      if (!token || !address || !walletType) {
+        return reply
+          .status(400)
+          .send("Please provide a token, address, and walletType in field");
       }
 
       try {
@@ -63,8 +69,36 @@ export const authRoutes: FastifyPluginCallback = (
           process.env.JWT_API_KEY || ""
         );
 
+        // TODO REGISTER USER
+
+        let user = await prismaClient.user.findFirst({
+          where: {
+            wallet: {
+              address,
+            },
+          },
+        });
+
+        if (!user) {
+          console.log("user not exist, creating one");
+          user = await prismaClient.user.create({
+            data: {
+              wallet: {
+                create: {
+                  address,
+                  type: walletType,
+                },
+              },
+            },
+          });
+          console.log("user created");
+        }
+
+        console.log("User data:", user);
+
         return reply.send({
           data: {
+            isNewUser: user.isNewUser,
             access_token: jwtWrapped,
           },
           message: "Success logging in",
