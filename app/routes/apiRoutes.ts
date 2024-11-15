@@ -146,7 +146,7 @@ export const apiRoutes: FastifyPluginCallback = (
           },
         });
 
-        const apiKey = updatedUser.apiKey;
+        const apiKey = updatedUser.apiKey?.key;
 
         return {
           data: {
