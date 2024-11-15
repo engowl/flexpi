@@ -24,32 +24,45 @@ const StateAnnotation = Annotation.Root({
 });
 
 // const tools = pluginRegistry.getTools();
-const tools = [searchPairsTool, getPairsByTokenTool, getRealTimePriceOracleTool]
-const toolNode = new ToolNode(tools);
+const toolNode = new ToolNode(pluginRegistry.getTools());
 
-// Initialize the ChatOllama model
-// const model = new ChatOllama({
-//   baseUrl: "http://localhost:11434",
-//   model: 'llama3.2',
-//   // model: 'llama3-groq-tool-use',
-//   verbose: true,
-//   maxRetries: 3,
-//   // temperature: 0
+let model: any;
+let jsonFormatterModel: any;
 
-// }).bindTools(tools);
+if (process.env.ANTHROPIC_MODE === "true") {
+  model = new ChatAnthropic({
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    model: 'claude-3-5-sonnet-20241022',
+    temperature: 0,
+    verbose: true,
+  }).bindTools(pluginRegistry.getTools());
 
-const model = new ChatAnthropic({
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-  model: 'claude-3-5-sonnet-20241022',
-  temperature: 0,
-  verbose: true,
-}).bindTools(tools);
+  jsonFormatterModel = new ChatAnthropic({
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    model: 'claude-3-5-sonnet-20241022',
+    temperature: 0
+  })
+} else {
+  // Initialize the ChatOllama model
+  model = new ChatOllama({
+    baseUrl: "http://localhost:11434",
+    // model: 'llama3.2',
+    model: 'llama3-groq-tool-use',
+    verbose: true,
+    maxRetries: 3,
+    // temperature: 0
 
-const jsonFormatterModel = new ChatAnthropic({
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-  model: 'claude-3-5-sonnet-20241022',
-  temperature: 0
-})
+  }).bindTools(pluginRegistry.getTools());
+
+  jsonFormatterModel = new ChatOllama({
+    baseUrl: "http://localhost:11434",
+    model: 'llama3.2',
+    verbose: true,
+    maxRetries: 3,
+    temperature: 0,
+    format: "json",
+  })
+}
 
 // const jsonFormatterModel = new ChatOllama({
 //   baseUrl: "http://localhost:11434",
@@ -178,24 +191,26 @@ export async function run(prompt: string, callId: string): Promise<any> {
 
   console.log('_prompt', _prompt);
 
-  // Format the response as JSON
-  // const llamaGenResponse = await axios.post('http://localhost:11434/api/generate', {
-  //   prompt: _prompt,
-  //   model: 'llama3.2',
-  //   format: 'json',
-  //   stream: false,
-  //   raw: true,
-  //   temperature: 0,
-  // })
+  if (process.env.ANTHROPIC_MODE === "true") {
+    const jsonFormatterResponse = await jsonFormatterModel.invoke(
+      [new HumanMessage(_prompt)]
+    );
 
-  // const jsonResponse = JSON.parse(llamaGenResponse.data.response);
-  // return jsonResponse;
+    console.log('jsonFormatterResponse', jsonFormatterResponse);
 
-  const jsonFormatterResponse = await jsonFormatterModel.invoke(
-    [new HumanMessage(_prompt)]
-  );
+    return JSON.parse(jsonFormatterResponse.content as string);
+  } else {
+    // Format the response as JSON
+    const llamaGenResponse = await axios.post('http://localhost:11434/api/generate', {
+      prompt: _prompt,
+      model: 'llama3.2',
+      format: 'json',
+      stream: false,
+      raw: true,
+      temperature: 0,
+    })
 
-  console.log('jsonFormatterResponse', jsonFormatterResponse);
-
-  return JSON.parse(jsonFormatterResponse.content as string);
+    const jsonResponse = JSON.parse(llamaGenResponse.data.response);
+    return jsonResponse;
+  }
 }
