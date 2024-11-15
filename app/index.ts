@@ -3,6 +3,10 @@ import Fastify from "fastify";
 import FastifyCors from "@fastify/cors";
 import { experimentalRoutes } from "./routes/experimentalRoutes";
 import { authRoutes } from "./routes/authRoutes";
+import { pluginRegistry } from "./plugins/plugin-registry";
+import { run } from "./core/FlexPiEngine";
+import { apiRoutes } from "./routes/apiRoutes";
+import generateApiKey from "./utils/apiUtils";
 
 const fastify = Fastify();
 
@@ -24,6 +28,8 @@ fastify.register(authRoutes, {
 fastify.get("/ping", async (request, reply) => {
   return "pong\n";
 });
+
+console.log(generateApiKey());
 
 fastify.listen(
   {
