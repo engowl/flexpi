@@ -12,7 +12,7 @@ import { BiSolidCopy } from "react-icons/bi";
 import toast from "react-hot-toast";
 import { IoClose } from "react-icons/io5";
 
-export default function Libraries() {
+export default function Library() {
   const { libraries } = useUser();
 
   return (
