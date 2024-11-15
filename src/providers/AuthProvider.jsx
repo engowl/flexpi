@@ -60,9 +60,6 @@ export default function AuthProvider({ children }) {
       setAccessToken(token);
       mutate();
       navigate("/");
-      toast.success("Signed in successfully", {
-        id: "signing",
-      });
     } catch (e) {
       toast.error("Error signing in", {
         id: "signing",
