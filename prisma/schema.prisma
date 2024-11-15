@@ -49,9 +49,9 @@ model ApiCall {
   userId String
   user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  query    String
   schema   Json
   response Json
+  duration Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
