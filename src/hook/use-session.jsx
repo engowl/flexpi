@@ -15,9 +15,12 @@ export const useSession = () => {
   const [access_token] = useLocalStorage("access_token");
 
   useEffect(() => {
+    if (isSigningIn) return;
+
     if (isLoggedIn && access_token) {
       setSignedIn(true);
     } else if (!isDynamicSigningIn && isLoggedIn && !access_token) {
+      console.log("HANDLE LOGOUT CALLED");
       handleLogOut();
     }
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { flexpiPublicAPI } from "../api/flexpi.js";
 import { isDynamicSigningInAtom, isSignedInAtom } from "../store/auth-store.js";
 import { useAtom } from "jotai";
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useSession } from "../hook/use-session.jsx";
 import toast from "react-hot-toast";
 import { useLocalStorage } from "@uidotdev/usehooks";
@@ -35,13 +35,19 @@ export default function AuthProvider({ children }) {
     setSigningIn(true);
 
     try {
-      const dynamicToken = localStorage.getItem("dynamic_authentication_token");
+      const dynamicToken = getAuthToken();
 
-      //   const { data } = await flexpiPublicAPI.post("/auth/login", {
-      //     token: dynamicToken,
-      //   });
+      const { data } = await flexpiPublicAPI.post("/auth/login", {
+        token: dynamicToken,
+      });
 
-      setAccessToken("token");
+      const token = data.data.access_token;
+
+      if (!token) {
+        throw new Error("Token not found");
+      }
+
+      setAccessToken(token);
 
       toast.success("Signed in successfully", {
         id: "signing",
