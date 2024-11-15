@@ -1,0 +1,44 @@
+# Node modules
+node_modules/
+dist/
+build/
+
+# TypeScript compiled output
+*.tsbuildinfo
+*.js
+*.js.map
+*.d.ts
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific files
+.DS_Store
+
+# Optional npm cache directory
+.npm
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Package-lock
+package-lock.json
+yarn.lock
+
+# Tests and coverage
+coverage/
+test-results/
+
+# Other build-related files
+.cache/

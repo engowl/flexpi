@@ -1,0 +1,43 @@
+{
+  "name": "flexpi-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node ./app/index.js",
+    "dev": "nodemon ./app/index.ts",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev --name init",
+    "db:generate-seed": "npx @snaplet/seed sync",
+    "db:seed": "npx tsx prisma/seed/seed.ts",
+    "db:reset": "prisma migrate reset --force && prisma db push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "@langchain/core": "^0.3.17",
+    "@langchain/openai": "^0.3.12",
+    "@langchain/pinecone": "^0.1.2",
+    "@pinecone-database/pinecone": "^4.0.0",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.7.7",
+    "axios-rate-limit": "^1.4.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.1.0",
+    "langchain": "^0.3.5",
+    "llamaindex": "^0.8.9",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "nodemon": "^3.1.7",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
