@@ -1,9 +1,36 @@
 import { Button, Modal, ModalContent } from "@nextui-org/react";
 import { useAtom } from "jotai";
 import { isGetStartedDialogOpenAtom } from "../../store/dialog-store.js";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { flexpiAPI } from "../../api/flexpi.js";
+import { useEmitEvent } from "../../hook/use-event.jsx";
 
 export default function GetStartedDialog() {
   const [isOpen, setOpen] = useAtom(isGetStartedDialogOpenAtom);
+  const [isLoading, setIsLoading] = useState(false);
+  const emitEvent = useEmitEvent("create-api-key-dialog");
+
+  async function createApiKey() {
+    setIsLoading(true);
+
+    try {
+      const { data } = await flexpiAPI.post("/api/create-key");
+      const apiKey = data.data.apiKey;
+      console.log({ apiKey });
+
+      toast.success("API Key created successfully!");
+      emitEvent({
+        message: "Api key created",
+      });
+      setOpen(false);
+    } catch (error) {
+      console.log("failed create api key: ", error);
+      toast.error("Failed create api key");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <Modal
@@ -36,7 +63,12 @@ export default function GetStartedDialog() {
           </div>
         </div>
 
-        <Button className="text-[#1F4D00] font-medium mt-10" color="primary">
+        <Button
+          isLoading={isLoading}
+          onClick={createApiKey}
+          className="text-[#1F4D00] font-medium mt-10"
+          color="primary"
+        >
           Create FLEXPI
         </Button>
       </ModalContent>
