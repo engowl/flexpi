@@ -53,10 +53,10 @@ export const searchPairsTool = tool(async ({ query }) => {
     });
     const pairs = response.data?.pairs || [];
 
-    if (pairs.length === 0) return "No matching pairs found for the query.";
+    if (pairs.length === 0) return JSON.stringify("No matching pairs found for the query.");
 
     // Return key information for the first few matches
-    const formattedResults = pairs.slice(0, 5).map((pair: any) => ({
+    const formattedResults = pairs.slice(0, 3).map((pair: any) => ({
       tokenAddress: pair.baseToken.address,
       tokenName: pair.baseToken.name,
       tokenSymbol: pair.baseToken.symbol,
@@ -65,12 +65,18 @@ export const searchPairsTool = tool(async ({ query }) => {
       liquidityUSD: pair.liquidity?.usd,
       pairAddress: pair.pairAddress,
       chainId: pair.chainId,
+      fdv: pair.fdv,
+      marketCap: pair.marketCap,
+      info: pair.info,
+      txns: pair.txns,
+      volume: pair.volume,
+      priceChange: pair.priceChange,
     }));
 
     return JSON.stringify(formattedResults);
   } catch (error: any) {
     console.error('Error searching for pairs:', error);
-    return `Error searching pairs: ${error.message}`;
+    return JSON.stringify(`Error searching for pairs`);
   }
 }, {
   name: "search_pairs",
@@ -98,6 +104,7 @@ export const searchPairsTool = tool(async ({ query }) => {
   schema: z.object({
     query: z.string().describe("The text query to search for trading pairs (e.g., token symbol or name)."),
   }),
+  tags: ["DexScreener", "Market Data", "Trading Pairs", "Token Price", "Liquidity", "Market Cap", "Volume", "Search token by symbol"],
 });
 
 export const getPairsByTokenTool = tool(async ({ tokenAddresses }) => {
@@ -105,7 +112,7 @@ export const getPairsByTokenTool = tool(async ({ tokenAddresses }) => {
     const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddresses}`);
     const pairs = response.data.pairs || [];
 
-    if (pairs.length === 0) return "No trading pairs found for the provided token address.";
+    if (pairs.length === 0) return JSON.stringify("No trading pairs found for the provided token address.");
 
     // Return detailed data for a few pairs
     const formattedPairs = pairs.slice(0, 3).map((pair:any) => ({
@@ -148,4 +155,5 @@ export const getPairsByTokenTool = tool(async ({ tokenAddresses }) => {
   schema: z.object({
     tokenAddresses: z.string().describe("A single token address or multiple comma-separated token addresses."),
   }),
+  tags: ["DexScreener", "Market Data", "Trading Pairs", "Token Price", "Liquidity", "Market Cap", "Volume"]
 });

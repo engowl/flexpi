@@ -4,7 +4,7 @@ import { pluginRegistry } from "../plugins/plugin-registry";
 import { schemaToPrompt } from "../core/utils/schema";
 import { run } from "../core/FlexPiEngine";
 import { logAPICall } from "./helpers/logging";
-import { sleep } from "../utils/miscUtils";
+import { generateCallId } from "../utils/apiUtils";
 import generateApiKey from "../utils/apiUtils";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { prismaClient } from "../lib/prisma";
@@ -42,8 +42,11 @@ export const apiRoutes: FastifyPluginCallback = (
 
       const start = performance.now();
 
-      const res = await run(prompt);
-      console.log("res", res);
+      const callId = generateCallId();
+      console.log('callId', callId);
+
+      const res = await run(prompt, callId);
+      console.log('res', res);
 
       // DUMMY RETURN
       // await sleep(3000);
