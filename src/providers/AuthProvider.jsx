@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { flexpiPublicAPI } from "../api/flexpi.js";
+import { flexpiAPI, flexpiPublicAPI } from "../api/flexpi.js";
 import { isDynamicSigningInAtom, isSignedInAtom } from "../store/auth-store.js";
 import { useAtom } from "jotai";
 import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core";
@@ -7,6 +7,8 @@ import { useSession } from "../hook/use-session.jsx";
 import toast from "react-hot-toast";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
+import useSWR from "swr";
+import { isGetStartedDialogOpenAtom } from "../store/dialog-store.js";
 
 const AuthContext = createContext({
   userData: {},
@@ -18,21 +20,22 @@ export default function AuthProvider({ children }) {
   const { handleLogOut, user, primaryWallet } = useDynamicContext();
   const [isReadyToSign, setIsReadyToSign] = useState(false);
   const [isSigningIn, setSigningIn] = useState(false);
-  const [, setSignedIn] = useAtom(isSignedInAtom);
-  const [, setIsDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
   const { isSignedIn, isLoading } = useSession();
   const [, setAccessToken] = useLocalStorage("access_token");
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [, setSignedIn] = useAtom(isSignedInAtom);
+  const [, setIsDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
+  const [, setGetStartedDialogOpen] = useAtom(isGetStartedDialogOpenAtom);
 
   const navigate = useNavigate();
 
-  //   const { data: userData } = useSWR(
-  //     isSignedIn ? "/auth/me" : null,
-  //     async (url) => {
-  //       const { data } = await flexpiAPI.get(url);
-  //       return data;
-  //     }
-  //   );
+  const { data: userData, mutate } = useSWR(
+    isSignedIn ? "/user/me" : null,
+    async (url) => {
+      const { data } = await flexpiAPI.get(url);
+      setGetStartedDialogOpen(data.data.isNewUser);
+      return data.data;
+    }
+  );
 
   const login = async (user) => {
     if (isSigningIn || !user || !primaryWallet) return;
@@ -55,7 +58,7 @@ export default function AuthProvider({ children }) {
       }
 
       setAccessToken(token);
-      setIsNewUser(data.data.isNewUser);
+      mutate();
       navigate("/");
       toast.success("Signed in successfully", {
         id: "signing",
@@ -94,9 +97,8 @@ export default function AuthProvider({ children }) {
   return (
     <AuthContext.Provider
       value={{
-        // userData: userData || {},
+        userData: userData || {},
         isSigningIn,
-        isNewUser,
       }}
     >
       {children}

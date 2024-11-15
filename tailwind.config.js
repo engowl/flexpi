@@ -9,7 +9,24 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: { plex:['"IBM Plex Sans"', "sans-serif"]}
+      fontFamily: { plex: ['"IBM Plex Sans"', "sans-serif"] },
+      colors: {
+        background: "#F2F2F2",
+        primary: {
+          DEFAULT: "#B6FA89",
+          50: "#F9FFF5",
+          100: "#F0FEE7",
+          200: "#E1FDCE",
+          300: "#D5FCBA",
+          400: "#C6FBA2",
+          500: "#B6FA89",
+          600: "#89F740",
+          700: "#60E10A",
+          800: "#3E9306",
+          900: "#1F4903",
+          950: "#112702",
+        },
+      },
     },
   },
   darkMode: "class",

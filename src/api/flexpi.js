@@ -6,6 +6,14 @@ const apiWithSession = () => {
   });
   instance.interceptors.request.use(async (req) => {
     let access_token = localStorage.getItem("access_token");
+    if (
+      access_token &&
+      access_token.startsWith('"') &&
+      access_token.endsWith('"')
+    ) {
+      access_token = access_token.slice(1, -1);
+    }
+
     req.headers.Authorization = `Bearer ${access_token}`;
     return req;
   });
