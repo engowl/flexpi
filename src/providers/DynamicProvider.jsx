@@ -26,6 +26,7 @@ export default function DynamicProvider({ children }) {
           },
           onLogout: (args) => {
             setSignedIn(false);
+            setIsDynamicSigningIn(false);
             localStorage.removeItem("access_token");
             window.location.reload();
           },
