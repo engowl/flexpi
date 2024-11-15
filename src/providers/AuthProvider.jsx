@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { flexpiPublicAPI } from "../api/flexpi.js";
-import { isSignedInAtom } from "../store/auth-store.js";
+import { isDynamicSigningInAtom, isSignedInAtom } from "../store/auth-store.js";
 import { useAtom } from "jotai";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useSession } from "../hook/use-session.jsx";
@@ -9,6 +9,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 
 const AuthContext = createContext({
   userData: {},
+  isSigningIn: false,
 });
 
 export default function AuthProvider({ children }) {
@@ -16,6 +17,7 @@ export default function AuthProvider({ children }) {
   const [isReadyToSign, setIsReadyToSign] = useState(false);
   const [isSigningIn, setSigningIn] = useState(false);
   const [, setSignedIn] = useAtom(isSignedInAtom);
+  const [, setIsDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
   const { isSignedIn, isLoading } = useSession();
   const [, setAccessToken] = useLocalStorage("access_token", null);
 
@@ -58,6 +60,7 @@ export default function AuthProvider({ children }) {
       console.error("Error logging in", e);
     } finally {
       setSigningIn(false);
+      setIsDynamicSigningIn(false);
     }
   };
 
@@ -77,11 +80,10 @@ export default function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={
-        {
-          // userData: userData || {},
-        }
-      }
+      value={{
+        // userData: userData || {},
+        isSigningIn,
+      }}
     >
       {children}
     </AuthContext.Provider>

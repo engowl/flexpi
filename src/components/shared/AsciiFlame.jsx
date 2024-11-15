@@ -77,10 +77,10 @@ const AsciiFlame = () => {
       <div
         ref={flameRef}
         style={{
-          color: "#1F4D00",
+          color: "#B6FA89",
           fontSize: "10px",
           whiteSpace: "pre",
-          opacity: 0.2,
+          opacity: 1,
         }}
       />
     </motion.div>
