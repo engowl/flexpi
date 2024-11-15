@@ -13,6 +13,7 @@
     "@dynamic-labs/ethereum": "^3.6.2",
     "@dynamic-labs/sdk-react-core": "^3.6.2",
     "@nextui-org/react": "^2.4.8",
+    "@uidotdev/usehooks": "^2.4.1",
     "axios": "^1.7.7",
     "framer-motion": "^11.11.17",
     "jotai": "^2.10.2",

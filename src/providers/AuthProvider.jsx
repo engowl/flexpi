@@ -5,6 +5,7 @@ import { useAtom } from "jotai";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useSession } from "../hook/use-session.jsx";
 import toast from "react-hot-toast";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 const AuthContext = createContext({
   userData: {},
@@ -15,8 +16,8 @@ export default function AuthProvider({ children }) {
   const [isReadyToSign, setIsReadyToSign] = useState(false);
   const [isSigningIn, setSigningIn] = useState(false);
   const [, setSignedIn] = useAtom(isSignedInAtom);
-
   const { isSignedIn, isLoading } = useSession();
+  const [, setAccessToken] = useLocalStorage("access_token", null);
 
   //   const { data: userData } = useSWR(
   //     isSignedIn ? "/auth/me" : null,
@@ -34,11 +35,11 @@ export default function AuthProvider({ children }) {
     try {
       const dynamicToken = localStorage.getItem("dynamic_authentication_token");
 
-      const { data } = await flexpiPublicAPI.post("/auth/login", {
-        token: dynamicToken,
-      });
+      //   const { data } = await flexpiPublicAPI.post("/auth/login", {
+      //     token: dynamicToken,
+      //   });
 
-      localStorage.setItem("access_token", data.token);
+      setAccessToken("token");
 
       toast.success("Signed in successfully", {
         id: "signing",
@@ -76,9 +77,11 @@ export default function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{
-        // userData: userData || {},
-      }}
+      value={
+        {
+          // userData: userData || {},
+        }
+      }
     >
       {children}
     </AuthContext.Provider>
