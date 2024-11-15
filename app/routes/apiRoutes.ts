@@ -4,7 +4,6 @@ import { pluginRegistry } from "../plugins/plugin-registry";
 import { schemaToPrompt } from "../core/utils/schema";
 import { run } from "../core/FlexPiEngine";
 import { logAPICall } from "./helpers/logging";
-import { sleep } from "../utils/miscUtils";
 import { generateCallId } from "../utils/apiUtils";
 import generateApiKey from "../utils/apiUtils";
 import { authMiddleware } from "./middlewares/authMiddleware";
