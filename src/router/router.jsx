@@ -3,6 +3,7 @@ import IndexPage from "../pages/IndexPage.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import RootLayout from "../layouts/RootLayout.jsx";
 import RouteGuard from "../components/guard/RouteGuard.jsx";
+import RouteAuthLoginGuard from "../components/guard/RouteLoginGuard.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -19,7 +20,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "login",
-        element: <LoginPage />,
+        element: (
+          <RouteAuthLoginGuard>
+            <LoginPage />
+          </RouteAuthLoginGuard>
+        ),
       },
     ],
   },

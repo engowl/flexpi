@@ -6,6 +6,7 @@ import { getAuthToken, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useSession } from "../hook/use-session.jsx";
 import toast from "react-hot-toast";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext({
   userData: {},
@@ -20,6 +21,7 @@ export default function AuthProvider({ children }) {
   const [, setIsDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
   const { isSignedIn, isLoading } = useSession();
   const [, setAccessToken] = useLocalStorage("access_token");
+  const navigate = useNavigate();
 
   //   const { data: userData } = useSWR(
   //     isSignedIn ? "/auth/me" : null,
@@ -48,7 +50,7 @@ export default function AuthProvider({ children }) {
       }
 
       setAccessToken(token);
-
+      navigate("/");
       toast.success("Signed in successfully", {
         id: "signing",
       });
@@ -58,7 +60,6 @@ export default function AuthProvider({ children }) {
       });
 
       setSignedIn(false);
-
       if (user) {
         console.log("Error while logging in and user is present", e);
         handleLogOut();
