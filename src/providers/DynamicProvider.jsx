@@ -16,7 +16,7 @@ export default function DynamicProvider({ children }) {
         siweStatement: "Sign in with Flexpi",
         initialAuthenticationMode: "connect-and-sign",
         events: {
-          onAuthFlowOpen: () => {
+          onAuthInit: () => {
             setIsDynamicSigningIn(true);
           },
           onSignedMessage: ({ signatureHash, signedMessage }) => {
