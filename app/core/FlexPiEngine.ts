@@ -5,6 +5,7 @@ import { MemorySaver, Annotation } from "@langchain/langgraph";
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { pluginRegistry } from "../plugins/plugin-registry";
 import { getSystemPrompt } from "./utils/prompt";
+import { z } from "zod";
 
 const StateAnnotation = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -24,7 +25,7 @@ const model = new ChatOllama({
   model: 'llama3.2',
   verbose: true,
   maxRetries: 3,
-  temperature: 0,
+  temperature: 0
 }).bindTools(tools);
 
 const jsonFormatterModel = new ChatOllama({
@@ -50,7 +51,7 @@ async function callModel(state: typeof StateAnnotation.State) {
   // Return the new message to be added to the state
   return { messages: [response] };
 }
-export async function run(prompt: string) {
+export async function run(prompt: string): Promise<any> {
   const workflow = new StateGraph(StateAnnotation)
     .addNode("agent", callModel)
     .addNode("tools", new ToolNode(pluginRegistry.getTools()))
@@ -64,6 +65,8 @@ export async function run(prompt: string) {
 
   const systemPrompt = getSystemPrompt(pluginRegistry.getMetadatas());
 
+  console.log('prompt', prompt);
+
   const state = await app.invoke({
     messages: [
       new SystemMessage(systemPrompt),
@@ -72,13 +75,13 @@ export async function run(prompt: string) {
     toolOutputs: []
   }, { configurable: { thread_id: "1" } });
 
-
-
   const finalResponse = state.messages[state.messages.length - 1].content;
+
+  console.log('finalResponse', finalResponse);
 
   // Format the response as JSON
   const formattedResponse = await jsonFormatterModel.invoke([
-    new SystemMessage(finalResponse),
+    new SystemMessage(finalResponse + prompt),
     new HumanMessage("format those results as JSON")
   ]);
 

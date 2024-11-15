@@ -40,8 +40,6 @@ fastify.get('/ping', async (request, reply) => {
   return 'pong\n'
 })
 
-console.log(generateApiKey())
-
 fastify.listen({
   port: process.env.APP_PORT ? parseInt(process.env.APP_PORT) : 3000
 }, (err) => {
