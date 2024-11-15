@@ -11,7 +11,7 @@ interface SchemaItem {
 
 export function schemaToPrompt(schema: Schema): string {
   const { query, items } = schema;
-  let prompt = `Please answer the following in JSON format:\n${generateSchema(items)}\n\nAnswer in JSON format. JSON Answer:`;
+  let prompt = `Please answer the following in JSON format:\n${generateSchema(items)}\n\nAnswer in JSON format with the ACTUAL VALUE. JSON Answer:`;
   return prompt;
 }
 

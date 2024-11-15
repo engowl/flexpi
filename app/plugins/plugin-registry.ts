@@ -4,6 +4,7 @@ import {
   metadata as dexscreenerPluginMetadata
 } from './dexscreener';
 import {
+  getPriceFeedsTool,
   getRealTimePriceOracleTool,
   metadata as pythPriceFeedsMetadata,
 } from './pyth-price-feeds';
@@ -16,6 +17,7 @@ class PluginRegistry {
 
     /* ---------------------------- Pyth Price Feeds ---------------------------- */
     getRealTimePriceOracleTool,
+    getPriceFeedsTool
 
     /* --------------------------------- Twitter -------------------------------- */
 

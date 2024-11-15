@@ -20,6 +20,7 @@
   "description": "",
   "dependencies": {
     "@fastify/cors": "^10.0.1",
+    "@langchain/anthropic": "^0.3.8",
     "@langchain/core": "^0.3.18",
     "@langchain/langgraph": "^0.2.20",
     "@langchain/ollama": "^0.1.2",

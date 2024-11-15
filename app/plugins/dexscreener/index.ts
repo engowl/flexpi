@@ -53,7 +53,7 @@ export const searchPairsTool = tool(async ({ query }) => {
     });
     const pairs = response.data?.pairs || [];
 
-    if (pairs.length === 0) return "No matching pairs found for the query.";
+    if (pairs.length === 0) return JSON.stringify("No matching pairs found for the query.");
 
     // Return key information for the first few matches
     const formattedResults = pairs.slice(0, 3).map((pair: any) => ({
@@ -76,7 +76,7 @@ export const searchPairsTool = tool(async ({ query }) => {
     return JSON.stringify(formattedResults);
   } catch (error: any) {
     console.error('Error searching for pairs:', error);
-    return `Error searching pairs: ${error.message}`;
+    return JSON.stringify(`Error searching for pairs`);
   }
 }, {
   name: "search_pairs",
@@ -112,7 +112,7 @@ export const getPairsByTokenTool = tool(async ({ tokenAddresses }) => {
     const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddresses}`);
     const pairs = response.data.pairs || [];
 
-    if (pairs.length === 0) return "No trading pairs found for the provided token address.";
+    if (pairs.length === 0) return JSON.stringify("No trading pairs found for the provided token address.");
 
     // Return detailed data for a few pairs
     const formattedPairs = pairs.slice(0, 3).map((pair:any) => ({
