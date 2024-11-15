@@ -1,10 +1,10 @@
 import "./dotenv";
-import Fastify from 'fastify'
+import Fastify from "fastify";
 import FastifyCors from "@fastify/cors";
 import { experimentalRoutes } from "./routes/experimentalRoutes";
+import { authRoutes } from "./routes/authRoutes";
 
-const fastify = Fastify()
-
+const fastify = Fastify();
 
 fastify.register(FastifyCors, {
   origin: "*",
@@ -14,31 +14,37 @@ fastify.register(FastifyCors, {
 
 // Experimental Routes
 fastify.register(experimentalRoutes, {
-  prefix: "/experimental",  
-})
+  prefix: "/experimental",
+});
 
+fastify.register(authRoutes, {
+  prefix: "/auth",
+});
 
-fastify.get('/ping', async (request, reply) => {
-  return 'pong\n'
-})
+fastify.get("/ping", async (request, reply) => {
+  return "pong\n";
+});
 
-fastify.listen({
-  port: process.env.APP_PORT ? parseInt(process.env.APP_PORT) : 3000
-}, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
+fastify.listen(
+  {
+    port: process.env.APP_PORT ? parseInt(process.env.APP_PORT) : 3000,
+  },
+  (err) => {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
 
-  console.log('\n\n==============================================\n\n')
-  console.log(`
+    console.log("\n\n==============================================\n\n");
+    console.log(`
 ███████╗██╗░░░░░███████╗██╗░░██╗██████╗░██╗
 ██╔════╝██║░░░░░██╔════╝╚██╗██╔╝██╔══██╗██║
 █████╗░░██║░░░░░█████╗░░░╚███╔╝░██████╔╝██║
 ██╔══╝░░██║░░░░░██╔══╝░░░██╔██╗░██╔═══╝░██║
 ██║░░░░░███████╗███████╗██╔╝╚██╗██║░░░░░██║
 ╚═╝░░░░░╚══════╝╚══════╝╚═╝░░╚═╝╚═╝░░░░░╚═╝
-  `)
-  console.log(`Server listening at http://localhost:${process.env.APP_PORT}`)
-  console.log('\n\n==============================================\n\n')
-})
+  `);
+    console.log(`Server listening at http://localhost:${process.env.APP_PORT}`);
+    console.log("\n\n==============================================\n\n");
+  }
+);
