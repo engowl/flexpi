@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 const AuthContext = createContext({
   userData: {},
   isSigningIn: false,
+  isNewUser: false,
 });
 
 export default function AuthProvider({ children }) {
@@ -21,6 +22,8 @@ export default function AuthProvider({ children }) {
   const [, setIsDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
   const { isSignedIn, isLoading } = useSession();
   const [, setAccessToken] = useLocalStorage("access_token");
+  const [isNewUser, setIsNewUser] = useState(false);
+
   const navigate = useNavigate();
 
   //   const { data: userData } = useSWR(
@@ -41,6 +44,8 @@ export default function AuthProvider({ children }) {
 
       const { data } = await flexpiPublicAPI.post("/auth/login", {
         token: dynamicToken,
+        address: primaryWallet.address,
+        walletType: primaryWallet.key !== "turnkeyhd" ? "EOA" : "SOCIAL",
       });
 
       const token = data.data.access_token;
@@ -50,6 +55,7 @@ export default function AuthProvider({ children }) {
       }
 
       setAccessToken(token);
+      setIsNewUser(data.data.isNewUser);
       navigate("/");
       toast.success("Signed in successfully", {
         id: "signing",
@@ -90,6 +96,7 @@ export default function AuthProvider({ children }) {
       value={{
         // userData: userData || {},
         isSigningIn,
+        isNewUser,
       }}
     >
       {children}
