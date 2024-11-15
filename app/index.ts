@@ -7,6 +7,7 @@ import { pluginRegistry } from "./plugins/plugin-registry";
 import { run } from "./core/FlexPiEngine";
 import { apiRoutes } from "./routes/apiRoutes";
 import generateApiKey from "./utils/apiUtils";
+import { userRoutes } from "./routes/userRoutes";
 
 const fastify = Fastify();
 
@@ -23,6 +24,10 @@ fastify.register(experimentalRoutes, {
 
 fastify.register(authRoutes, {
   prefix: "/auth",
+});
+
+fastify.register(userRoutes, {
+  prefix: "/user",
 });
 
 fastify.get("/ping", async (request, reply) => {

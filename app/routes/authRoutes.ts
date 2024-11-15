@@ -56,19 +56,6 @@ export const authRoutes: FastifyPluginCallback = (
       }
 
       try {
-        const signingKey = await client.getSigningKey();
-        const publicKey = signingKey.getPublicKey();
-
-        const decodedToken: JwtPayload = jwt.verify(token, publicKey, {
-          ignoreExpiration: false,
-          maxAge: "4d",
-        }) as JwtPayload;
-
-        const jwtWrapped = jwt.sign(
-          decodedToken,
-          process.env.JWT_API_KEY || ""
-        );
-
         // TODO REGISTER USER
 
         let user = await prismaClient.user.findFirst({
@@ -94,7 +81,22 @@ export const authRoutes: FastifyPluginCallback = (
           console.log("user created");
         }
 
-        console.log("User data:", user);
+        const signingKey = await client.getSigningKey();
+        const publicKey = signingKey.getPublicKey();
+
+        const decodedToken: JwtPayload = jwt.verify(token, publicKey, {
+          ignoreExpiration: false,
+          maxAge: "4d",
+        }) as JwtPayload;
+
+        const jwtWrapped = jwt.sign(
+          {
+            ...decodedToken,
+            address,
+            userId: user.id,
+          },
+          process.env.JWT_API_KEY || ""
+        );
 
         return reply.send({
           data: {
