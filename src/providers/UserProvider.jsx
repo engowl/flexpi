@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "../hook/use-session.jsx";
 import { useAuth } from "./AuthProvider.jsx";
 import { useListenEvent } from "../hook/use-event.jsx";
@@ -53,3 +53,7 @@ export default function UserProvider({ children }) {
     </UserContext.Provider>
   );
 }
+
+export const useUser = () => {
+  return useContext(UserContext);
+};
