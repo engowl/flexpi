@@ -19,7 +19,7 @@ export default function AuthProvider({ children }) {
   const [, setSignedIn] = useAtom(isSignedInAtom);
   const [, setIsDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
   const { isSignedIn, isLoading } = useSession();
-  const [, setAccessToken] = useLocalStorage("access_token", null);
+  const [, setAccessToken] = useLocalStorage("access_token");
 
   //   const { data: userData } = useSWR(
   //     isSignedIn ? "/auth/me" : null,

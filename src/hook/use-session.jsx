@@ -12,7 +12,7 @@ export const useSession = () => {
   const [isSignedIn, setSignedIn] = useAtom(isSignedInAtom);
   const [isDynamicSigningIn] = useAtom(isDynamicSigningInAtom);
   const [isLoading, setIsLoading] = useState(true);
-  const [access_token] = useLocalStorage("access_token", null);
+  const [access_token] = useLocalStorage("access_token");
 
   useEffect(() => {
     if (isLoggedIn && access_token) {
