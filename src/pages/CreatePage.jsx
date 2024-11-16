@@ -24,6 +24,7 @@ import {
   ModalFooter,
   Textarea,
 } from "@nextui-org/react";
+import { IoClose } from "react-icons/io5";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
 import { monokaiTheme } from "@uiw/react-json-view/monokai";
@@ -572,33 +573,41 @@ export default function CreatePage() {
               isOpen={isOpen}
               onOpenChange={onOpenChange}
               placement="top-center"
+              hideCloseButton
             >
               <ModalContent>
                 {(onClose) => (
                   <>
-                    <ModalHeader className="flex flex-col gap-1">
-                      Save your API
+                    <ModalHeader className="flex flex-row justify-between">
+                      <p className="font-neuton text-2xl">Create Your FLEXPI</p>
+                      <button
+                        onClick={onClose}
+                        className="p-2 rounded-md bg-[#F6F6F6]"
+                      >
+                        <IoClose className="text-black" size={20} />
+                      </button>
                     </ModalHeader>
-                    <ModalBody>
+                    <ModalBody className="flex flex-col gap-5">
+                      <p className="text-sm text-[#030303]">
+                        Ready to create your own FlexPI? Start by giving your
+                        FlexPI a name, and you’ll be on your way to building
+                        your custom API!
+                      </p>
                       <Input
-                        autoFocus
-                        label="Name"
-                        placeholder="Your API name"
-                        variant="bordered"
+                        label="Your FLEXPI Name"
+                        variant="flat"
                         value={apiName}
                         onChange={handleApiNameChange}
                       />
                     </ModalBody>
                     <ModalFooter>
-                      <Button color="danger" variant="flat" onPress={onClose}>
-                        Close
-                      </Button>
                       <Button
                         color="primary"
                         onClick={handleSaveData}
                         isLoading={saveLoading}
+                        className="text-black w-full font-medium"
                       >
-                        Submit
+                        Create
                       </Button>
                     </ModalFooter>
                   </>
