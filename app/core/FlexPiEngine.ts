@@ -10,6 +10,7 @@ import axios from "axios";
 import { getPairsByTokenTool, searchPairsTool } from "../plugins/dexscreener";
 import { getRealTimePriceOracleTool } from "../plugins/pyth-price-feeds";
 import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatOpenAI } from "@langchain/openai";
 
 const StateAnnotation = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -29,39 +30,115 @@ const toolNode = new ToolNode(pluginRegistry.getTools());
 let model: any;
 let jsonFormatterModel: any;
 
-if (process.env.ANTHROPIC_MODE === "true") {
-  model = new ChatAnthropic({
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-    model: 'claude-3-5-sonnet-20241022',
-    temperature: 0,
-    verbose: true,
-  }).bindTools(pluginRegistry.getTools());
+// if (process.env.ANTHROPIC_MODE === "true") {
+//   model = new ChatAnthropic({
+//     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+//     // model: 'claude-3-5-sonnet-20241022',
+//     model: 'claude-3-5-haiku-20241022',
+//     temperature: 0,
+//     verbose: true,
+//   }).bindTools(pluginRegistry.getTools());
 
-  jsonFormatterModel = new ChatAnthropic({
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-    model: 'claude-3-5-sonnet-20241022',
-    temperature: 0
-  })
-} else {
-  // Initialize the ChatOllama model
-  model = new ChatOllama({
-    baseUrl: "http://localhost:11434",
-    // model: 'llama3.2',
-    model: 'llama3-groq-tool-use',
-    verbose: true,
-    maxRetries: 3,
-    // temperature: 0
+//   jsonFormatterModel = new ChatAnthropic({
+//     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+//     // model: 'claude-3-5-sonnet-20241022',
+//     model: 'claude-3-5-haiku-20241022',
+//     temperature: 0
+//   })
+// } else {
+//   // Initialize the ChatOllama model
+//   model = new ChatOllama({
+//     baseUrl: "http://localhost:11434",
+//     // model: 'llama3.2',
+//     model: 'llama3-groq-tool-use',
+//     verbose: true,
+//     maxRetries: 3,
+//     // temperature: 0
 
-  }).bindTools(pluginRegistry.getTools());
+//   }).bindTools(pluginRegistry.getTools());
 
-  jsonFormatterModel = new ChatOllama({
-    baseUrl: "http://localhost:11434",
-    model: 'llama3.2',
-    verbose: true,
-    maxRetries: 3,
-    temperature: 0,
-    format: "json",
-  })
+//   jsonFormatterModel = new ChatOllama({
+//     baseUrl: "http://localhost:11434",
+//     model: 'llama3.2',
+//     verbose: true,
+//     maxRetries: 3,
+//     temperature: 0,
+//     format: "json",
+//   })
+// }
+console.log('AI_MODE', process.env.AI_MODE);
+switch (process.env.AI_MODE) {
+  case "anthropic":
+    console.log(`Using Anthropic AI`);
+    model = new ChatAnthropic({
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      // model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-haiku-20241022',
+      temperature: 0,
+      verbose: true,
+    }).bindTools(pluginRegistry.getTools());
+
+    jsonFormatterModel = new ChatAnthropic({
+      anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+      // model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-haiku-20241022',
+      temperature: 0
+    });
+    break;
+
+  case "openai":
+    console.log(`Using OpenAI`);
+    model = new ChatOpenAI({
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      modelName: 'gpt-4o-mini',
+      temperature: 0,
+      verbose: true,
+    }).bindTools(pluginRegistry.getTools());
+
+    jsonFormatterModel = new ChatOpenAI({
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      modelName: 'gpt-4o',
+      temperature: 0,
+    });
+    break;
+
+  case "llama":
+    console.log(`Using Llama AI`);
+    model = new ChatOllama({
+      baseUrl: "http://localhost:11434",
+      model: 'llama3-groq-tool-use',
+      verbose: true,
+      maxRetries: 3,
+    }).bindTools(pluginRegistry.getTools());
+
+    jsonFormatterModel = new ChatOllama({
+      baseUrl: "http://localhost:11434",
+      model: 'llama3.2',
+      verbose: true,
+      maxRetries: 3,
+      temperature: 0,
+      format: "json",
+    });
+    break;
+
+  default:
+    console.log(`Using default Llama AI`);
+    model = new ChatOllama({
+      baseUrl: "http://localhost:11434",
+      model: 'llama3-groq-tool-use',
+      verbose: true,
+      maxRetries: 3,
+    }).bindTools(pluginRegistry.getTools());
+
+    jsonFormatterModel = new ChatOllama({
+      baseUrl: "http://localhost:11434",
+      model: 'llama3.2',
+      verbose: true,
+      maxRetries: 3,
+      temperature: 0,
+      format: "json",
+    });
+    break;
 }
 
 // const jsonFormatterModel = new ChatOllama({
@@ -186,12 +263,12 @@ export async function run(prompt: string, callId: string): Promise<any> {
 
   Prompt: ${prompt}
 
-  ONLY RESPONSE BASED ON DESIRED JSON FORMAT. Response in JSON:
+  ONLY RESPONSE BASED ON DESIRED JSON FORMAT. Don't use sentences. Only return the JSON format.
 `
 
   console.log('_prompt', _prompt);
 
-  if (process.env.ANTHROPIC_MODE === "true") {
+  if (process.env.AI_MODE !== "llama") {
     const jsonFormatterResponse = await jsonFormatterModel.invoke(
       [new HumanMessage(_prompt)]
     );

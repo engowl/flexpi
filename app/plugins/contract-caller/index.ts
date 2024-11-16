@@ -165,30 +165,17 @@ export const getERC721InfoTool = tool(async ({ contractAddress, tokenId }) => {
   }
 }, {
   name: 'get_erc721_info',
-  description: `A comprehensive tool for retrieving detailed information about a specific NFT (ERC721 token).
-    
-    Use this tool when you need to:
-    - Get basic collection information (name and symbol)
-    - Retrieve the metadata URI for a specific token
-    - Check the current owner of a specific token
-    - Verify token existence and validity
-    
-    Input Parameters:
-    - contractAddress: The Ethereum address of the ERC721 contract
-    - tokenId: The unique identifier of the specific NFT token
-    
-    Returns:
-    - name: The name of the NFT collection
-    - symbol: The symbol/ticker of the NFT collection
-    - tokenId: The queried token ID
-    - tokenURI: The URI containing the token's metadata
-    - owner: The Ethereum address that currently owns the token
-    
-    Common Use Cases:
-    1. NFT marketplace integrations
-    2. Portfolio tracking applications
-    3. NFT ownership verification
-    4. Metadata resolution for NFT displays`,
+  description: `Retrieves detailed information about a specific NFT (ERC721 token) including the collection name and symbol, token metadata URI, current owner, and token validity. This is useful for NFT marketplace integrations, portfolio tracking, ownership verification, and metadata resolution.
+
+  Input Parameters:
+  - contractAddress: The Ethereum contract address of the ERC721 NFT collection
+  - tokenId: The unique identifier of the specific NFT token
+  
+  Returns:
+  - Collection name and symbol
+  - Token metadata URI
+  - Current token owner
+  - Verification of token existence`,
   schema: z.object({
     contractAddress: z.string(),
     tokenId: z.string(),
@@ -218,25 +205,14 @@ export const getERC721BalanceTool = tool(async ({ contractAddress, ownerAddress 
   }
 }, {
   name: 'get_erc721_balance',
-  description: `A tool for checking how many NFTs from a specific collection an address owns.
-    
-    Use this tool when you need to:
-    - Check the total number of NFTs owned by an address within a collection
-    - Verify NFT holdings for portfolio analysis
-    - Monitor NFT ownership changes
-    
-    Input Parameters:
-    - contractAddress: The Ethereum address of the ERC721 contract
-    - ownerAddress: The Ethereum address to check the balance for
-    
-    Returns:
-    - balance: The total number of NFTs owned by the address in this collection
-    
-    Common Use Cases:
-    1. Portfolio tracking and analysis
-    2. Eligibility verification for holder benefits
-    3. Whale wallet analysis
-    4. Collection distribution studies`,
+  description: `A tool for checking how many NFTs from a specific collection an address owns. This is useful for portfolio tracking and analysis, eligibility verification for holder benefits, whale wallet analysis, and collection distribution studies.
+
+  Input Parameters:
+  - contractAddress: The Ethereum contract address of the ERC721 NFT collection
+  - ownerAddress: The Ethereum address to check the NFT balance for
+  
+  Returns:
+  - balance: The total number of NFTs owned by the address from this collection`,
   schema: z.object({
     contractAddress: z.string(),
     ownerAddress: z.string(),
@@ -270,34 +246,17 @@ export const getERC721ApprovalsTool = tool(async ({ contractAddress, tokenId, ow
   }
 }, {
   name: 'get_erc721_approvals',
-  description: `A tool for checking NFT approval status and permissions.
-    
-    Use this tool when you need to:
-    - Check if a specific NFT is approved for transfer
-    - Verify operator permissions for an entire collection
-    - Monitor approval status for marketplace integrations
-    
-    Input Parameters:
-    - contractAddress: The Ethereum address of the ERC721 contract
-    - tokenId: The specific NFT token ID to check approvals for
-    - ownerAddress: The address that owns the NFT
-    - operatorAddress: The address to check approval status for (usually a marketplace contract)
-    
-    Returns:
-    - tokenApproval: The address approved to transfer this specific token
-    - isApprovedForAll: Boolean indicating if the operator can transfer all tokens
-    
-    Common Use Cases:
-    1. Marketplace integration verification
-    2. Security monitoring for approved operators
-    3. Transaction preparation checks
-    4. Debugging failed transfer attempts
-    
-    Note: This tool is particularly useful for:
-    - Pre-transaction checks
-    - Security audits
-    - Marketplace integrations
-    - Portfolio management systems`,
+  description: `A tool for checking NFT approval status and permissions. This is useful for verifying marketplace integrations, monitoring security of approved operators, preparing transactions, and debugging failed transfers.
+
+Input Parameters:
+- contractAddress: The Ethereum contract address of the ERC721 NFT collection
+- tokenId: The specific NFT token ID to check approvals for
+- ownerAddress: The address that owns the NFT
+- operatorAddress: The address to check approval status for (usually a marketplace contract)
+
+Returns:
+- tokenApproval: The address approved to transfer this specific token
+- isApprovedForAll: Boolean indicating if the operator can transfer all tokens from the owner`,
   schema: z.object({
     contractAddress: z.string(),
     tokenId: z.string(),

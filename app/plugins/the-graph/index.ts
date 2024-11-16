@@ -7,6 +7,8 @@ import fs from "fs";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatOllama } from "@langchain/ollama";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { Document } from "@langchain/core/documents";
 
 
 export const metadata: PluginMetadata = {
@@ -43,12 +45,15 @@ if (process.env.ANTHROPIC_MODE === "true") {
   })
 }
 
+// Cache for processed SDL chunks
+
+
 export const uniswapV3SubgraphTool = tool(async ({ query }) => {
   try {
     console.log(`\n\n========== Calling Uniswap V3 Subgraph with query: ${query} ==========\n\n`);
 
     const sdl = fs.readFileSync(path.join(__dirname, '/sdl/uniswap-v3.txt'), 'utf-8');
-    console.log(sdl);
+    console.log('SDL:', sdl);
 
     // Based on the query, create the graphql query to fetch data from Uniswap V3 subgraph
     const systemPrompt =
@@ -79,8 +84,9 @@ export const uniswapV3SubgraphTool = tool(async ({ query }) => {
     const graphqlQuery = response.content;
     console.log('Generated graphql query:', graphqlQuery);
 
-    const endpoint = `https://gateway.thegraph.com/api/${process.env.THE_GRAPH_API_KEY}/subgraphs/id/5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV`
 
+    console.log('Calling The Graph...')
+    const endpoint = `https://gateway.thegraph.com/api/${process.env.THE_GRAPH_API_KEY}/subgraphs/id/5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV`
     const graphResponse = await axios.post(endpoint, {
       query: graphqlQuery
     });
@@ -91,7 +97,7 @@ export const uniswapV3SubgraphTool = tool(async ({ query }) => {
     if (!responseData) {
       console.warn("No data found for the specified query.");
       return JSON.stringify("No data found for the specified query.");
-    }else{
+    } else {
       return JSON.stringify(responseData, null, 2);
     }
   } catch (error) {
