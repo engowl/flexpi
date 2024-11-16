@@ -616,7 +616,13 @@ export default function CreatePage() {
                 <CardBody>
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
-                      <Spinner size="lg" color="primary" />
+                      {import.meta.env.VITE_MEME_LOADING === "true" ?
+                        <video autoPlay loop className="w-1/2 rounded-xl">
+                          <source src="/assets/video/meme_loading.mp4" type="video/mp4" />
+                        </video>
+                        :
+                        <Spinner size="lg" color="primary" />
+                      }
                     </div>
                   ) : response !== null ? (
                     <JsonView
