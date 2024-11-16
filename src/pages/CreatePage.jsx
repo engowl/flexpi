@@ -26,9 +26,7 @@ import {
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
 import { monokaiTheme } from "@uiw/react-json-view/monokai";
-import Marquee from "react-fast-marquee";
 import PluginList from "../components/shared/PluginList";
-import axios from "axios";
 import { flexpiAPI } from "../api/flexpi";
 import toast from "react-hot-toast";
 import { useUser } from "../providers/UserProvider";
@@ -57,7 +55,7 @@ export default function CreatePage() {
   const [searchParams] = useSearchParams();
   const libraryId = searchParams.get("id");
 
-  const { data: libraryTemplate, isLoading: isLibraryTemplateLoading } = useSWR(
+  const { data: libraryTemplate } = useSWR(
     libraryId ? `/api/${libraryId}` : null,
     async (url) => {
       const { data } = await flexpiAPI.get(url);
@@ -65,71 +63,58 @@ export default function CreatePage() {
     }
   );
 
-  console.log({
-    libraryId,
-    libraryTemplate,
-  });
-
   useEffect(() => {
     if (libraryTemplate) {
-      // set query
+      // Set query
       handleQueryChange({
         target: {
           value: libraryTemplate.query,
         },
       });
-      // set variable
+      // Set variables
       setVariables(libraryTemplate.schema.variables);
 
-      // Set all items to isEnabled
-      libraryTemplate.schema.items.forEach((item) => {
-        item.isEnabled = true;
-        if (item.subItems) {
-          item.subItems.forEach((subItem) => {
-            subItem.isEnabled = true;
-          });
-        }
-      });
+      // Enable all items
+      const enableItems = (items) => {
+        return items.map((item) => {
+          item.isEnabled = true;
+          if (item.subItems) {
+            item.subItems = enableItems(item.subItems);
+          }
+          return item;
+        });
+      };
 
-      // set data structure
-      setFields(libraryTemplate.schema.items);
+      const enabledItems = enableItems(libraryTemplate.schema.items);
+
+      // Set data structure
+      setFields(enabledItems);
     }
   }, [libraryTemplate]);
 
   const generateSchema = (currentFields, currentVariables, currentQuery) => {
-    // const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, key) => {
-    //   const variable = currentVariables.find((v) => v.key === key);
-    //   return variable ? variable.value || key : key;
-    // });
-
-    // Return the query with {{variable}} still in place
     const cleanQuery = currentQuery;
 
-    const cleanFields = fields
-      .filter((field) => field.isEnabled)
-      .map((field) => {
-        const cleanField = {
-          key: field.key,
-          dataType: field.dataType.toLowerCase(),
-          description: field.description,
-          ...(field.isArray && { isArray: true }),
-        };
-        if (field.subItems) {
-          cleanField.subItems = field.subItems
-            .filter((subItem) => subItem.isEnabled)
-            .map((subItem) => ({
-              key: subItem.key,
-              dataType: subItem.dataType.toLowerCase(),
-              description: subItem.description,
-              ...(subItem.isArray && { isArray: true }),
-            }));
-        }
-        return cleanField;
-      });
+    const cleanFields = (fields) => {
+      return fields
+        .filter((field) => field.isEnabled)
+        .map((field) => {
+          const cleanField = {
+            key: field.key,
+            dataType: field.dataType.toLowerCase(),
+            description: field.description,
+            ...(field.isArray && { isArray: true }),
+          };
+          if (field.subItems && field.subItems.length > 0) {
+            cleanField.subItems = cleanFields(field.subItems);
+          }
+          return cleanField;
+        });
+    };
 
     const schema = {
       query: cleanQuery,
-      items: cleanFields,
+      items: cleanFields(currentFields),
       variables: currentVariables.map((v) => ({
         key: v.key,
         value: v.value,
@@ -151,6 +136,7 @@ export default function CreatePage() {
           key,
           name: "",
           description: "",
+          value: "",
         }
       );
     });
@@ -190,29 +176,100 @@ export default function CreatePage() {
         dataType: "String",
         description: "",
         isArray: false,
-        isExpanded: false,
         isEnabled: true,
+        subItems: [],
       },
     ];
     setFields(newFields);
     generateSchema(newFields, variables, query);
   };
 
-  const removeField = (index) => {
-    const newFields = fields.filter((_, i) => i !== index);
+  const resetSchema = () => {
+    setFields([]);
+    setVariables([]);
+    setQueryParts([""]);
+    setGeneratedSchema("");
+  };
+
+  // Updated updateField function to handle nested paths
+  const updateField = (path, key, value) => {
+    const newFields = [...fields];
+
+    const updateFieldAtPath = (fieldsArray, path) => {
+      const [currentIndex, ...restPath] = path;
+      if (restPath.length === 0) {
+        fieldsArray[currentIndex] = {
+          ...fieldsArray[currentIndex],
+          [key]: value,
+          // Reset subItems if changing from Object to another type
+          subItems:
+            key === "dataType" && value !== "Object"
+              ? []
+              : fieldsArray[currentIndex].subItems,
+        };
+      } else {
+        fieldsArray[currentIndex].subItems = [
+          ...fieldsArray[currentIndex].subItems,
+        ];
+        updateFieldAtPath(fieldsArray[currentIndex].subItems, restPath);
+      }
+    };
+
+    updateFieldAtPath(newFields, path);
     setFields(newFields);
     generateSchema(newFields, variables, query);
   };
 
-  const updateField = (index, key, value) => {
+  // Updated removeField function to handle nested paths
+  const removeField = (path) => {
     const newFields = [...fields];
-    newFields[index][key] = value;
+
+    const removeFieldAtPath = (fieldsArray, path) => {
+      const [currentIndex, ...restPath] = path;
+      if (restPath.length === 0) {
+        fieldsArray.splice(currentIndex, 1);
+      } else {
+        removeFieldAtPath(fieldsArray[currentIndex].subItems, restPath);
+      }
+    };
+
+    removeFieldAtPath(newFields, path);
+    setFields(newFields);
+    generateSchema(newFields, variables, query);
+  };
+
+  // Updated handleAddSubItem function to handle nested paths
+  const handleAddSubItem = (path) => {
+    const newFields = [...fields];
+
+    const addSubItemAtPath = (fieldsArray, path) => {
+      const [currentIndex, ...restPath] = path;
+      if (restPath.length === 0) {
+        if (!fieldsArray[currentIndex].subItems) {
+          fieldsArray[currentIndex].subItems = [];
+        }
+        fieldsArray[currentIndex].subItems.push({
+          key: "",
+          dataType: "String",
+          description: "",
+          isArray: false,
+          isEnabled: true,
+          subItems: [],
+        });
+      } else {
+        fieldsArray[currentIndex].subItems = [
+          ...fieldsArray[currentIndex].subItems,
+        ];
+        addSubItemAtPath(fieldsArray[currentIndex].subItems, restPath);
+      }
+    };
+
+    addSubItemAtPath(newFields, path);
     setFields(newFields);
     generateSchema(newFields, variables, query);
   };
 
   const updateVariable = (index, variable) => {
-    console.log({ variable });
     const newVariables = variables.map((v, i) => {
       if (i === index) {
         return { ...v, ...variable };
@@ -233,43 +290,6 @@ export default function CreatePage() {
     generateSchema(fields, newVariables, newQueryParts.join(""));
   };
 
-  const resetSchema = () => {
-    setFields([]);
-    setVariables([]);
-    setQueryParts([""]);
-    setGeneratedSchema("");
-  };
-
-  const handleAddSubItem = (index) => {
-    const newFields = [...fields];
-    newFields[index].isExpanded = true;
-    if (!newFields[index].subItems) {
-      newFields[index].subItems = [];
-    }
-    newFields[index].subItems.push({
-      key: "",
-      dataType: "String",
-      description: "",
-      isArray: false,
-      isEnabled: true,
-    });
-    setFields(newFields);
-  };
-
-  const handleUpdateSubItem = (fieldIndex, subItemIndex, key, value) => {
-    const newFields = [...fields];
-    newFields[fieldIndex].subItems[subItemIndex][key] = value;
-    setFields(newFields);
-  };
-
-  const handleRemoveSubItem = (fieldIndex, subItemIndex) => {
-    const newFields = [...fields];
-    newFields[fieldIndex].subItems = newFields[fieldIndex].subItems.filter(
-      (_, i) => i !== subItemIndex
-    );
-    setFields(newFields);
-  };
-
   const handleRequestData = async () => {
     try {
       setIsLoading(true);
@@ -277,9 +297,9 @@ export default function CreatePage() {
       // Set tab to response
       setSelectedTab("response");
 
-      console.log(generatedSchema);
-      // Real
-      // const res = await flexpiAPI.post("/api/call",
+      // Real API call
+      // const res = await flexpiAPI.post(
+      //   "/api/call",
       //   {
       //     schema: { ...JSON.parse(generatedSchema) },
       //     libraryId: libraryId ?? null,
@@ -291,7 +311,7 @@ export default function CreatePage() {
       //   }
       // );
 
-      // Dummy
+      // Dummy API call for testing
       const res = await flexpiAPI.post(
         "/api/call/dummy",
         {
@@ -306,8 +326,6 @@ export default function CreatePage() {
       );
 
       setResponse(res.data);
-
-      console.log(res.data);
     } catch (error) {
       console.log(error);
       toast.error("Failed to fetch data");
@@ -323,7 +341,6 @@ export default function CreatePage() {
         name: apiName,
         schema: { ...JSON.parse(generatedSchema) },
       };
-      console.log(rBody);
 
       const res = await flexpiAPI.post("/api/save", rBody);
 
@@ -351,10 +368,6 @@ export default function CreatePage() {
           </div>
 
           <div className="flex gap-4 mb-4 items-center overflow-hidden w-full">
-            {/* <p className="text-sm font-semibold text-black/50 w-24">Data Source</p>
-          <div className="w-full bg-white rounded-md border h-12 flex items-center overflow-hidden">
-            <MarqueeComponent />
-          </div> */}
             <PluginList />
           </div>
 
@@ -393,45 +406,43 @@ export default function CreatePage() {
               </div>
               <CardBody>
                 {variables.length > 0 ? (
-                  <>
-                    {variables.map((variable, index) => (
-                      <div key={index} className="flex mb-4 flex-col">
-                        <div className="grid grid-cols-3 gap-4 items-center">
-                          <div className="text-sm px-3 py-2 w- text-center text-blue-500 bg-blue-200 rounded-xl">
-                            {`{{ ${variable.key} }}`}
-                          </div>
+                  variables.map((variable, index) => (
+                    <div key={index} className="flex mb-4 flex-col">
+                      <div className="grid grid-cols-3 gap-4 items-center">
+                        <div className="text-sm px-3 py-2 text-center text-blue-500 bg-blue-200 rounded-xl">
+                          {`{{ ${variable.key} }}`}
+                        </div>
+                        <Input
+                          value={variable.value}
+                          onChange={(e) =>
+                            updateVariable(index, { value: e.target.value })
+                          }
+                          placeholder="Value"
+                          size="sm"
+                        />
+                        <div className="flex">
                           <Input
-                            value={variable.value}
+                            value={variable.description}
                             onChange={(e) =>
-                              updateVariable(index, { value: e.target.value })
+                              updateVariable(index, {
+                                description: e.target.value,
+                              })
                             }
-                            placeholder="Value"
+                            placeholder="Description (optional)"
                             size="sm"
                           />
-                          <div className="flex">
-                            <Input
-                              value={variable.description}
-                              onChange={(e) =>
-                                updateVariable(index, {
-                                  description: e.target.value,
-                                })
-                              }
-                              placeholder="Description (optional)"
-                              size="sm"
-                            />
-                            <Button
-                              isIconOnly
-                              variant="light"
-                              size="sm"
-                              onClick={() => removeVariable(index)}
-                            >
-                              <Trash2 color="red" className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            size="sm"
+                            onClick={() => removeVariable(index)}
+                          >
+                            <Trash2 color="red" className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                    ))}
-                  </>
+                    </div>
+                  ))
                 ) : (
                   <div className="text-center text-sm text-black opacity-60 py-4">
                     No variables added yet
@@ -466,211 +477,17 @@ export default function CreatePage() {
                 <div className="w-80 ml-4">Description</div>
               </div>
               <CardBody>
-                {fields && fields.length > 0 ? (
-                  <>
-                    {fields.map((field, index) => (
-                      <div key={index} className="space-y-0">
-                        <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
-                          <Switch
-                            isSelected={field.isEnabled}
-                            onValueChange={(checked) =>
-                              updateField(index, "isEnabled", checked)
-                            }
-                          />
-                          <Input
-                            value={field.key}
-                            onChange={(e) =>
-                              updateField(index, "key", e.target.value)
-                            }
-                            placeholder="Field Name"
-                            size="sm"
-                            classNames={{
-                              input: "h-8",
-                              base: "w-32",
-                            }}
-                          />
-                          <Select
-                            selectedKeys={[field.dataType]}
-                            defaultSelectedKeys={["string"]}
-                            onChange={(e) =>
-                              updateField(index, "dataType", e.target.value)
-                            }
-                            size="sm"
-                            className="w-24"
-                            label=""
-                            aria-label="Data Type"
-                            isDisabled={
-                              field.subItems && field.subItems?.length > 0
-                            }
-                          >
-                            <SelectItem key="string" value="string">
-                              String
-                            </SelectItem>
-                            <SelectItem key="number" value="number">
-                              Number
-                            </SelectItem>
-                            <SelectItem key="boolean" value="boolean">
-                              Boolean
-                            </SelectItem>
-                            <SelectItem key="object" value="object">
-                              Object
-                            </SelectItem>
-                          </Select>
-                          <Checkbox
-                            isSelected={field.isArray}
-                            onValueChange={(checked) =>
-                              updateField(index, "isArray", checked)
-                            }
-                            size="lg"
-                            classNames={{
-                              icon: "text-[#2F7004]",
-                            }}
-                          />
-                          <Input
-                            value={field.description}
-                            onChange={(e) =>
-                              updateField(index, "description", e.target.value)
-                            }
-                            classNames={{
-                              input: "h-8",
-                              base: "flex-1 min-w-[100px]",
-                            }}
-                            placeholder="Description"
-                            size="sm"
-                          />
-                          {field.dataType === "object" && (
-                            <Button
-                              isIconOnly
-                              variant="light"
-                              size="sm"
-                              onClick={() => handleAddSubItem(index)}
-                              className="bg-[#E6FFD6] text-[#2F7004]"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            size="sm"
-                            onClick={() => removeField(index)}
-                          >
-                            <Trash2 color="red" className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        {field.isExpanded && field.subItems && (
-                          <div className="ml-4">
-                            {field.subItems.map((subItem, subIndex) => (
-                              <div key={subIndex} className="w-full border-l">
-                                <div className="p-3">
-                                  <div className="flex items-center gap-4">
-                                    <Switch
-                                      isSelected={subItem.isEnabled}
-                                      onValueChange={(checked) =>
-                                        handleUpdateSubItem(
-                                          index,
-                                          subIndex,
-                                          "isEnabled",
-                                          checked
-                                        )
-                                      }
-                                      isDisabled={!field.isEnabled}
-                                    />
-                                    <Input
-                                      value={subItem.key}
-                                      onChange={(e) =>
-                                        handleUpdateSubItem(
-                                          index,
-                                          subIndex,
-                                          "key",
-                                          e.target.value
-                                        )
-                                      }
-                                      isDisabled={!field.isEnabled}
-                                      // className="max-w-[200px]"
-                                      placeholder="Field name"
-                                      size="sm"
-                                      classNames={{
-                                        input: "h-8",
-                                        base: "w-32",
-                                      }}
-                                    />
-                                    <Select
-                                      selectedKeys={[subItem.dataType]}
-                                      defaultSelectedKeys={["string"]}
-                                      onChange={(e) =>
-                                        handleUpdateSubItem(
-                                          index,
-                                          subIndex,
-                                          "dataType",
-                                          e.target.value
-                                        )
-                                      }
-                                      isDisabled={!field.isEnabled}
-                                      size="sm"
-                                      className="w-24"
-                                    >
-                                      <SelectItem key="string" value="string">
-                                        String
-                                      </SelectItem>
-                                      <SelectItem key="number" value="number">
-                                        Number
-                                      </SelectItem>
-                                      <SelectItem key="boolean" value="boolean">
-                                        Boolean
-                                      </SelectItem>
-                                    </Select>
-                                    <Checkbox
-                                      isSelected={subItem.isArray}
-                                      onValueChange={(checked) =>
-                                        handleUpdateSubItem(
-                                          index,
-                                          subIndex,
-                                          "isArray",
-                                          checked
-                                        )
-                                      }
-                                      size="lg"
-                                      classNames={{
-                                        icon: "text-[#2F7004]",
-                                      }}
-                                      isDisabled={!field.isEnabled}
-                                    />
-                                    <Input
-                                      value={subItem.description}
-                                      onChange={(e) =>
-                                        handleUpdateSubItem(
-                                          index,
-                                          subIndex,
-                                          "description",
-                                          e.target.value
-                                        )
-                                      }
-                                      className="flex-1"
-                                      placeholder="Description"
-                                      size="sm"
-                                      isDisabled={!field.isEnabled}
-                                    />
-                                    <Button
-                                      isIconOnly
-                                      variant="light"
-                                      size="sm"
-                                      onClick={() =>
-                                        handleRemoveSubItem(index, subIndex)
-                                      }
-                                    >
-                                      <Trash2 color="red" className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </>
+                {fields.length > 0 ? (
+                  fields.map((field, index) => (
+                    <RecursiveInput
+                      key={index}
+                      path={[index]}
+                      field={field}
+                      updateField={updateField}
+                      handleAddSubItem={handleAddSubItem}
+                      removeField={removeField}
+                    />
+                  ))
                 ) : (
                   <div className="text-center text-sm text-black opacity-60 py-4">
                     No fields added yet
@@ -716,7 +533,7 @@ export default function CreatePage() {
                         placeholder="Your API name"
                         variant="bordered"
                         value={apiName}
-                        onChange={(e) => handleApiNameChange(e)}
+                        onChange={handleApiNameChange}
                       />
                     </ModalBody>
                     <ModalFooter>
@@ -742,11 +559,7 @@ export default function CreatePage() {
             selectedKey={selectedTab}
             onSelectionChange={setSelectedTab}
           >
-            <Tab
-              key="gennedSchema"
-              title="Generated Schema"
-              className="font-neuton text-xl"
-            >
+            <Tab key="gennedSchema" title="Generated Schema">
               <Card>
                 <CardBody>
                   <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
@@ -755,41 +568,22 @@ export default function CreatePage() {
                 </CardBody>
               </Card>
             </Tab>
-            <Tab
-              key="response"
-              title="Response"
-              className="font-neuton text-xl"
-            >
+            <Tab key="response" title="Response">
               <Card>
                 <CardBody>
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
-                      {import.meta.env.VITE_MEME_LOADING === "true" ? (
-                        <div className="flex flex-col items-center">
-                          <video autoPlay loop className="w-1/2 rounded-xl">
-                            <source
-                              src="/assets/video/meme_loading.mp4"
-                              type="video/mp4"
-                            />
-                          </video>
-                          <div className="text-center font-semibold mt-4 animate-pulse text-2xl">
-                            Our AI working in the background be like...
-                          </div>
-                        </div>
-                      ) : (
-                        <Spinner size="lg" color="primary" />
-                      )}
+                      <Spinner size="lg" color="primary" />
                     </div>
                   ) : response !== null ? (
                     <JsonView
                       value={response.data}
-                      style={monokaiTheme}
+                      theme={monokaiTheme}
                       collapsed={false}
-                      shortenTextAfterLength={1000}
-                      className="py-4 px-4 rounded-xl"
+                      collapseStringsAfterLength={100}
                       displayDataTypes={false}
-                      enableClipboard
-                      indentWidth={24}
+                      enableClipboard={true}
+                      indentWidth={4}
                     />
                   ) : (
                     <div className="p-4 bg-[#2e2e2e] text-[#797979] rounded-lg font-mono text-sm">
@@ -809,6 +603,99 @@ export default function CreatePage() {
           </Tabs>
         </div>
       </div>
+    </div>
+  );
+}
+
+function RecursiveInput({
+  path,
+  field,
+  updateField,
+  handleAddSubItem,
+  removeField,
+}) {
+  return (
+    <div className="space-y-2 ml-4">
+      <div className="flex items-center gap-4 p-3 rounded-lg">
+        <Switch
+          isSelected={field.isEnabled}
+          onValueChange={(checked) => updateField(path, "isEnabled", checked)}
+        />
+        <Input
+          value={field.key}
+          onChange={(e) => updateField(path, "key", e.target.value)}
+          placeholder="Field Name"
+          size="sm"
+          classNames={{
+            input: "h-8",
+            base: "w-32",
+          }}
+        />
+        <Select
+          selectedKeys={[field.dataType]}
+          onSelectionChange={(selected) =>
+            updateField(path, "dataType", selected.currentKey)
+          }
+          size="sm"
+          className="w-24"
+          isDisabled={field.subItems && field.subItems.length > 0}
+        >
+          <SelectItem key="string">String</SelectItem>
+          <SelectItem key="number">Number</SelectItem>
+          <SelectItem key="boolean">Boolean</SelectItem>
+          <SelectItem key="object">Object</SelectItem>
+        </Select>
+        <Checkbox
+          isSelected={field.isArray}
+          onValueChange={(checked) => updateField(path, "isArray", checked)}
+          size="lg"
+          classNames={{
+            icon: "text-[#2F7004]",
+          }}
+        />
+        <Input
+          value={field.description}
+          onChange={(e) => updateField(path, "description", e.target.value)}
+          classNames={{
+            input: "h-8",
+            base: "flex-1 min-w-[100px]",
+          }}
+          placeholder="Description"
+          size="sm"
+        />
+        {field.dataType === "Object" && (
+          <Button
+            isIconOnly
+            variant="light"
+            size="sm"
+            onClick={() => handleAddSubItem(path)}
+            className="bg-[#E6FFD6] text-[#2F7004]"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
+        <Button
+          isIconOnly
+          variant="light"
+          size="sm"
+          onClick={() => removeField(path)}
+        >
+          <Trash2 color="red" className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {field.subItems &&
+        field.subItems.length > 0 &&
+        field.subItems.map((item, subIndex) => (
+          <RecursiveInput
+            key={subIndex}
+            path={[...path, subIndex]}
+            field={item}
+            updateField={updateField}
+            handleAddSubItem={handleAddSubItem}
+            removeField={removeField}
+          />
+        ))}
     </div>
   );
 }
