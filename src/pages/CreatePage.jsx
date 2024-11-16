@@ -32,6 +32,8 @@ import axios from "axios";
 import { flexpiAPI } from "../api/flexpi";
 import toast from "react-hot-toast";
 import { useUser } from "../providers/UserProvider";
+import { useSearchParams } from "react-router-dom";
+import useSWR from "swr";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -51,6 +53,38 @@ export default function CreatePage() {
   const [selectedTab, setSelectedTab] = useState("gennedSchema");
 
   const query = useMemo(() => queryParts.join(""), [queryParts]);
+
+  const [searchParams] = useSearchParams();
+  const libraryId = searchParams.get("id");
+
+  const { data: libraryTemplate, isLoading: isLibraryTemplateLoading } = useSWR(
+    libraryId ? `/api/${libraryId}` : null,
+    async (url) => {
+      const { data } = await flexpiAPI.get(url);
+      return data.data;
+    }
+  );
+
+  console.log({
+    libraryId,
+    libraryTemplate,
+  });
+
+  useEffect(() => {
+    if (libraryTemplate) {
+      // set query
+      handleQueryChange({
+        target: {
+          value: libraryTemplate.query,
+        },
+      });
+      // set variable
+      setVariables(libraryTemplate.schema.variables);
+
+      // set data structure
+      setFields(libraryTemplate.schema.items);
+    }
+  }, [libraryTemplate]);
 
   const generateSchema = (currentFields, currentVariables, currentQuery) => {
     // const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, key) => {
@@ -168,6 +202,7 @@ export default function CreatePage() {
   };
 
   const updateVariable = (index, variable) => {
+    console.log({ variable });
     const newVariables = variables.map((v, i) => {
       if (i === index) {
         return { ...v, ...variable };
@@ -234,15 +269,24 @@ export default function CreatePage() {
 
       console.log(generatedSchema);
       // Real
-      // const res = await flexpiAPI.post("/api/call", {
-      //   ...JSON.parse(generatedSchema),
-      // });
+      // const res = await flexpiAPI.post("/api/call",
+      //   {
+      //     schema: { ...JSON.parse(generatedSchema) },
+      //     libraryId: libraryId ?? null,
+      //   },
+      //   {
+      //     headers: {
+      //       "Flex-api-key": apiStats.apiKey,
+      //     },
+      //   }
+      // );
 
       // Dummy
       const res = await flexpiAPI.post(
         "/api/call/dummy",
         {
-          ...JSON.parse(generatedSchema),
+          schema: { ...JSON.parse(generatedSchema) },
+          libraryId: libraryId ?? null,
         },
         {
           headers: {
@@ -288,15 +332,15 @@ export default function CreatePage() {
 
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="w-full">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-3xl font-neuton tracking-tight">
               Generate API Using Simple Prompts and Data Structure
             </h1>
           </div>
 
-          <div className="flex gap-4 mb-4 items-center overflow-hidden">
+          <div className="flex gap-4 mb-4 items-center overflow-hidden w-full">
             {/* <p className="text-sm font-semibold text-black/50 w-24">Data Source</p>
           <div className="w-full bg-white rounded-md border h-12 flex items-center overflow-hidden">
             <MarqueeComponent />
@@ -330,7 +374,7 @@ export default function CreatePage() {
 
             <Card className="px-4 py-3">
               <CardHeader className="border-b">
-                <h1 className="font-medium text-xl">Variables</h1>
+                <h1 className="font-neuton text-xl">Variables</h1>
               </CardHeader>
               <div className="flex mt-3 text-sm font-medium gap-4 mx-4">
                 <div className="w-full">Key</div>
@@ -388,7 +432,7 @@ export default function CreatePage() {
 
             <Card className="px-4 py-3">
               <CardHeader className="justify-between border-b">
-                <h1 className="font-medium text-xl">Response Data Structure</h1>
+                <h1 className="font-neuton text-xl">Response Data Structure</h1>
                 <div className="flex gap-2">
                   <Button variant="solid" size="sm" onClick={resetSchema}>
                     RESET
@@ -688,7 +732,11 @@ export default function CreatePage() {
             selectedKey={selectedTab}
             onSelectionChange={setSelectedTab}
           >
-            <Tab key="gennedSchema" title="Generated Schema">
+            <Tab
+              key="gennedSchema"
+              title="Generated Schema"
+              className="font-neuton text-xl"
+            >
               <Card>
                 <CardBody>
                   <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
@@ -697,23 +745,30 @@ export default function CreatePage() {
                 </CardBody>
               </Card>
             </Tab>
-            <Tab key="response" title="Response">
+            <Tab
+              key="response"
+              title="Response"
+              className="font-neuton text-xl"
+            >
               <Card>
                 <CardBody>
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
-                      {import.meta.env.VITE_MEME_LOADING === "true" ?
+                      {import.meta.env.VITE_MEME_LOADING === "true" ? (
                         <div className="flex flex-col items-center">
                           <video autoPlay loop className="w-1/2 rounded-xl">
-                            <source src="/assets/video/meme_loading.mp4" type="video/mp4" />
+                            <source
+                              src="/assets/video/meme_loading.mp4"
+                              type="video/mp4"
+                            />
                           </video>
                           <div className="text-center font-semibold mt-4 animate-pulse text-2xl">
                             Our AI working in the background be like...
                           </div>
                         </div>
-                        :
+                      ) : (
                         <Spinner size="lg" color="primary" />
-                      }
+                      )}
                     </div>
                   ) : response !== null ? (
                     <JsonView
