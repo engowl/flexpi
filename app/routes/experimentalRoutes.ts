@@ -9,7 +9,7 @@ export const experimentalRoutes: FastifyPluginCallback = (
 ) => {
   app.get(
     "/test",
-    { preHandler: [authMiddleware, apiKeyLimiterMiddleware] },
+    { preHandler: [apiKeyLimiterMiddleware] },
     async (request, reply) => {
       try {
         return {
