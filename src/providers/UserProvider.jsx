@@ -8,6 +8,11 @@ import toast from "react-hot-toast";
 const UserContext = createContext({
   library: [],
   userData: {},
+  apiStats: {
+    apiKey: "",
+    apiKeyMaxLimit: 0,
+    apiKeyCurrentUsage: 0,
+  },
 });
 
 export default function UserProvider({ children }) {
@@ -15,6 +20,12 @@ export default function UserProvider({ children }) {
   const { userData } = useAuth();
   const [library, setLibrary] = useState([]);
   const [isLibariesLoading, setLibraryLoading] = useState(false);
+  const [isApiStatsLoading, setApiStatsLoading] = useState(false);
+  const [apiStats, setApiStats] = useState({
+    apiKey: "",
+    apiKeyMaxLimit: 0,
+    apiKeyCurrentUsage: 0,
+  });
 
   const fetchLibaries = async () => {
     if (isLibariesLoading) return;
@@ -32,13 +43,29 @@ export default function UserProvider({ children }) {
     }
   };
 
+  const fetchApiStats = async () => {
+    if (isApiStatsLoading) return;
+    setApiStatsLoading(true);
+    try {
+      const res = await flexpiAPI.get(`/api/stats`);
+      setApiStats(res.data.data);
+    } catch (error) {
+      console.error("Error fetching api stats", error);
+      toast.error("Error fetching api stats");
+    } finally {
+      setApiStatsLoading(false);
+    }
+  };
+
   useListenEvent("create-api-key-dialog", () => {
     fetchLibaries();
+    fetchApiStats();
   });
 
   useEffect(() => {
     if (isSignedIn) {
       fetchLibaries();
+      fetchApiStats();
     }
   }, [isSignedIn, userData]);
 
@@ -47,6 +74,7 @@ export default function UserProvider({ children }) {
       value={{
         userData: userData,
         library: library,
+        apiStats: apiStats,
       }}
     >
       {children}
