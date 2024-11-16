@@ -465,6 +465,16 @@ export default function CreatePage() {
             </Card>
 
             <Card className="px-4 py-3" shadow="none">
+              <CardHeader className="border-b">
+                <h1 className="font-neuton text-xl">Endpoint Preview</h1>
+              </CardHeader>
+
+              <CardBody>
+                <div></div>
+              </CardBody>
+            </Card>
+
+            <Card className="px-4 py-3" shadow="none">
               <CardHeader className="justify-between border-b">
                 <h1 className="font-neuton text-xl">Response Data Structure</h1>
                 <div className="flex gap-2">
