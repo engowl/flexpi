@@ -1,13 +1,13 @@
 import {
   getPairsByTokenTool,
   searchPairsTool,
-  metadata as dexscreenerPluginMetadata
-} from './dexscreener';
+  metadata as dexscreenerPluginMetadata,
+} from "./dexscreener";
 import {
   getPriceFeedsTool,
   getRealTimePriceOracleTool,
   metadata as pythPriceFeedsMetadata,
-} from './pyth-price-feeds';
+} from "./pyth-price-feeds";
 import {
   getERC20InfoTool,
   getERC20ApprovalTool,
@@ -15,12 +15,19 @@ import {
   getERC721ApprovalsTool,
   getERC721BalanceTool,
   getERC721InfoTool,
-  metadata as contractCallerMetadata
-} from './contract-caller'
+  metadata as contractCallerMetadata,
+} from "./contract-caller";
 import {
   uniswapV3SubgraphTool,
-  metadata as theGraphMetadata
-} from './the-graph'
+  metadata as theGraphMetadata,
+} from "./the-graph";
+import {
+  getBlocks,
+  getStats,
+  getTokenBalances,
+  getTransactionHashSummary,
+  metadata as blockscoutMetadata,
+} from "./blockscout";
 
 class PluginRegistry {
   private tools = [
@@ -37,6 +44,12 @@ class PluginRegistry {
     /* ------------------------------- The Graph ------------------------------- */
     uniswapV3SubgraphTool,
 
+    /* ------------------------------- Blockscout ------------------------------- */
+    getBlocks,
+    getStats,
+    getTransactionHashSummary,
+    getTokenBalances,
+
     /* ----------------------------- Contract Caller ---------------------------- */
     getERC20InfoTool,
     getERC20ApprovalTool,
@@ -51,8 +64,9 @@ class PluginRegistry {
     dexscreenerPluginMetadata,
     pythPriceFeedsMetadata,
     theGraphMetadata,
+    blockscoutMetadata,
     contractCallerMetadata,
-  ]
+  ];
 
   getTools() {
     return this.tools;
