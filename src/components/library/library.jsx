@@ -27,7 +27,7 @@ export default function Library() {
         <Button
           onClick={() => navigate("/create")}
           color="primary"
-          className="text-black rounded-md"
+          className="text-black font-medium rounded-md"
         >
           Create API
         </Button>
@@ -125,7 +125,7 @@ const Actions = ({ id }) => {
       </button> */}
       <Link
         to={`/create?id=${id}`}
-        className="px-3 py-2 rounded-lg bg-primary text-black"
+        className="px-3 py-2 rounded-lg bg-primary hover:bg-primary/80 text-black font-medium transition-colors duration-200"
       >
         Try
       </Link>
