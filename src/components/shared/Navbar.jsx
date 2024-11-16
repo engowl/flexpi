@@ -8,6 +8,7 @@ import {
 import Nounsies from "./Nounsies.jsx";
 import { useUser } from "../../providers/UserProvider.jsx";
 import { Skeleton } from "@nextui-org/react";
+import { HistoryIcon } from "lucide-react";
 
 const LINKS = [
   { title: "Library", href: "/" },
@@ -62,6 +63,10 @@ const UserProfileButton = () => {
 
   return (
     <div className={"relative flex flex-row"}>
+      <NavLink key={"history-navigation"} to={"/history"} className="py-2 px-3 rounded-xl w-fit bg-[#F2F2F2] hover:bg-[#727272]/20 flex items-center gap-2 mr-2">
+        <HistoryIcon size={14} />
+        History
+      </NavLink>
       {primaryWallet ? (
         <div className="flex flex-row items-center justify-center gap-2">
           <div className="px-5 h-11 bg-[#F2F2F2] text-sm rounded-lg flex items-center justify-center">
