@@ -22,12 +22,7 @@ const Navbar = () => {
 
   return (
     location.pathname !== "/login" && (
-      <div
-        className="fixed top-0 w-full p-5"
-        style={{
-          zIndex: 10000,
-        }}
-      >
+      <div className="fixed top-0 z-50 w-full p-5">
         <div className="flex justify-between items-center px-5 bg-white h-[75px] w-full rounded-xl drop-shadow-sm">
           <div className="flex gap-10 items-center">
             <Link to={"/"} className="w-16 md:w-20 -mt-4">

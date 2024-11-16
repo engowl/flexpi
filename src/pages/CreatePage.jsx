@@ -22,6 +22,7 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Textarea,
 } from "@nextui-org/react";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
@@ -45,7 +46,7 @@ export default function CreatePage() {
   const [apiName, setApiName] = useState("");
   const [saveLoading, setSaveLoading] = useState(false);
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
   // Tab
   const [selectedTab, setSelectedTab] = useState("gennedSchema");
@@ -345,6 +346,7 @@ export default function CreatePage() {
       const res = await flexpiAPI.post("/api/save", rBody);
 
       toast.success(res.data.message);
+      onClose();
     } catch (error) {
       console.log(error);
       toast.error("Failed to save data");
@@ -376,17 +378,18 @@ export default function CreatePage() {
               <Tooltip placement="bottom-start" content={<GuideTooltip />}>
                 <div className="relative">
                   <div
-                    className="absolute inset-0 px-3 py-2 z-20 pointer-events-none font-mono text-lg"
+                    className="absolute inset-0 px-4 py-4 z-20 pointer-events-none font-mono text-sm"
                     aria-hidden="true"
                   >
                     {highlightedQuery}
                   </div>
-                  <Input
+                  <Textarea
                     value={query}
                     onChange={handleQueryChange}
                     classNames={{
-                      input: "bg-transparent font-mono text-lg",
-                      inputWrapper: "bg-default-100 border border-[#87E64C]",
+                      input: "bg-transparent font-mono text-sm px-1 py-2",
+                      inputWrapper:
+                        "bg-white data-[hover=true]:bg-white group-data-[focus=true]:bg-white shadow-none border-[1px] border-primary",
                     }}
                     style={{ color: "transparent", caretColor: "black" }}
                     placeholder="Use {{variable_name}} syntax to define template variables"
@@ -395,7 +398,7 @@ export default function CreatePage() {
               </Tooltip>
             </div>
 
-            <Card className="px-4 py-3">
+            <Card className="px-4 py-3" shadow="none">
               <CardHeader className="border-b">
                 <h1 className="font-neuton text-xl">Variables</h1>
               </CardHeader>
@@ -444,18 +447,23 @@ export default function CreatePage() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-sm text-black opacity-60 py-4">
+                  <div className="flex items-center justify-center h-20 text-center text-sm text-black opacity-60">
                     No variables added yet
                   </div>
                 )}
               </CardBody>
             </Card>
 
-            <Card className="px-4 py-3">
+            <Card className="px-4 py-3" shadow="none">
               <CardHeader className="justify-between border-b">
                 <h1 className="font-neuton text-xl">Response Data Structure</h1>
                 <div className="flex gap-2">
-                  <Button variant="solid" size="sm" onClick={resetSchema}>
+                  <Button
+                    variant="solid"
+                    size="sm"
+                    onClick={resetSchema}
+                    className="font-medium"
+                  >
                     RESET
                   </Button>
                   <Button
@@ -463,13 +471,13 @@ export default function CreatePage() {
                     color="primary"
                     size="sm"
                     onClick={addField}
-                    className="bg-[#E6FFD6] text-[#2F7004]"
+                    className="bg-[#E6FFD6] text-[#2F7004] font-medium"
                   >
                     ADD
                   </Button>
                 </div>
               </CardHeader>
-              <div className="flex text-sm font-medium pt-4 text-black/70">
+              <div className="flex text-sm font-medium py-4 text-black/70">
                 <div className="w-16 ml-6">Enable</div>
                 <div className="w-32 ml-2">Field Name</div>
                 <div className="w-24 ml-4">Data Type</div>
@@ -489,7 +497,7 @@ export default function CreatePage() {
                     />
                   ))
                 ) : (
-                  <div className="text-center text-sm text-black opacity-60 py-4">
+                  <div className="flex items-center justify-center h-32 text-center text-sm text-black opacity-60">
                     No fields added yet
                   </div>
                 )}
@@ -560,7 +568,7 @@ export default function CreatePage() {
             onSelectionChange={setSelectedTab}
           >
             <Tab key="gennedSchema" title="Generated Schema">
-              <Card>
+              <Card shadow="none">
                 <CardBody>
                   <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
                     {generatedSchema || "No schema generated yet"}
@@ -569,7 +577,7 @@ export default function CreatePage() {
               </Card>
             </Tab>
             <Tab key="response" title="Response">
-              <Card>
+              <Card shadow="none">
                 <CardBody>
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
@@ -586,7 +594,7 @@ export default function CreatePage() {
                       indentWidth={4}
                     />
                   ) : (
-                    <div className="p-4 bg-[#2e2e2e] text-[#797979] rounded-lg font-mono text-sm">
+                    <div className="flex items-center justify-center h-20 bg-[#2e2e2e] text-[#797979] rounded-lg font-mono text-sm">
                       No response yet
                     </div>
                   )}
