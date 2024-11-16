@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { cnm } from "../../utils/utils";
+import { cnm } from "../../utils/style";
 
 const LINKS = [
   { title: "Library", href: "/library" },
