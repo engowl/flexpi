@@ -222,14 +222,14 @@ export default function CreatePage() {
 
       console.log(generatedSchema)
       // Real
-      const res = await flexpiAPI.post("/api/call", {
-        ...JSON.parse(generatedSchema),
-      });
-
-      // Dummy
-      // const res = await flexpiAPI.post("/api/call/dummy", {
+      // const res = await flexpiAPI.post("/api/call", {
       //   ...JSON.parse(generatedSchema),
       // });
+
+      // Dummy
+      const res = await flexpiAPI.post("/api/call/dummy", {
+        ...JSON.parse(generatedSchema),
+      });
 
       setResponse(res.data);
 
