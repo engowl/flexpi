@@ -43,10 +43,10 @@ export const apiRoutes: FastifyPluginCallback = (
       const start = performance.now();
 
       const callId = generateCallId();
-      console.log('callId', callId);
+      console.log("callId", callId);
 
       const res = await run(prompt, callId);
-      console.log('res', res);
+      console.log("res", res);
 
       // DUMMY RETURN
       // await sleep(3000);
@@ -162,6 +162,49 @@ export const apiRoutes: FastifyPluginCallback = (
         return reply.status(500).send({
           data: null,
           message: "Error while creating api key",
+        });
+      }
+    }
+  );
+
+  app.get(
+    "/stats",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const { userId } = (request as any).user;
+
+      try {
+        const user = await prismaClient.user.findUnique({
+          where: {
+            id: userId,
+          },
+          include: {
+            apiKey: true,
+          },
+        });
+
+        if (!user) {
+          return reply.status(400).send({
+            message: "User not found, please register first",
+            data: null,
+          });
+        }
+
+        const apiStatsData = {
+          apiKey: user.apiKey?.key,
+          apiKeyMaxLimit: user.apiKey?.maxLimit,
+          apiKeyCurrentUsage: user.apiKey?.usageCount,
+        };
+
+        return {
+          data: apiStatsData,
+          message: "Succes getting API stats",
+        };
+      } catch (e) {
+        console.log("Error while getting API stats", e);
+        return reply.status(500).send({
+          message: "Error while getting API stats",
+          data: null,
         });
       }
     }
