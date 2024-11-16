@@ -6,6 +6,7 @@ import RouteGuard from "../components/guard/RouteGuard.jsx";
 import RouteAuthLoginGuard from "../components/guard/RouteLoginGuard.jsx";
 import CreatePage from "../pages/CreatePage.jsx";
 import ExplorePage from "../pages/ExplorePage.jsx";
+import HistoryPage from "../pages/HistoryPage.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +45,14 @@ export const router = createBrowserRouter([
           </RouteGuard>
         ),
       },
+      {
+        path: 'history',
+        element: (
+          <RouteGuard>
+            <HistoryPage />
+          </RouteGuard>
+        )
+      }
     ],
   },
 ]);
