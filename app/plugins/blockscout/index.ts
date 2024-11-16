@@ -77,6 +77,22 @@ export const metadata: PluginMetadata = {
           - To analyze token holdings for a specific address.
           - To retrieve detailed token information for wallets or contracts.`,
     },
+    {
+      id: "get_address_token_transfers",
+      name: "Get Address Token Transfers",
+      description: `
+          Fetches ERC-20 token transfers (both incoming and outgoing) for a specific address from Blockscout.
+  
+          Key Features:
+          - Retrieves both incoming and outgoing token transfers.
+          - Includes detailed information about the tokens, transactions, and involved addresses.
+          - Formats token values with proper decimal handling.
+  
+          Use Cases:
+          - Track token transfer history for an address.
+          - Monitor token movement patterns.
+          - Analyze token transaction volumes.`,
+    }
   ],
 };
 
@@ -404,30 +420,30 @@ export const getTokenBalances = tool(
           tokenId: item.token_id || null,
           tokenInstance: tokenInstance
             ? {
-                isUnique: tokenInstance.is_unique || false,
-                id: tokenInstance.id || null,
-                holderAddressHash: tokenInstance.holder_address_hash || null,
-                imageUrl: tokenInstance.image_url || null,
-                animationUrl: tokenInstance.animation_url || null,
-                externalAppUrl: tokenInstance.external_app_url || null,
-                metadata: tokenInstance.metadata
-                  ? {
-                      year: tokenInstance.metadata.year || null,
-                      tags: tokenInstance.metadata.tags || [],
-                      name: tokenInstance.metadata.name || null,
-                      imageUrl: tokenInstance.metadata.image_url || null,
-                      homeUrl: tokenInstance.metadata.home_url || null,
-                      externalUrl: tokenInstance.metadata.external_url || null,
-                      description: tokenInstance.metadata.description || null,
-                      attributes: (tokenInstance.metadata.attributes || []).map(
-                        (attr: any) => ({
-                          value: attr.value || null,
-                          traitType: attr.trait_type || null,
-                        })
-                      ),
-                    }
-                  : null,
-              }
+              isUnique: tokenInstance.is_unique || false,
+              id: tokenInstance.id || null,
+              holderAddressHash: tokenInstance.holder_address_hash || null,
+              imageUrl: tokenInstance.image_url || null,
+              animationUrl: tokenInstance.animation_url || null,
+              externalAppUrl: tokenInstance.external_app_url || null,
+              metadata: tokenInstance.metadata
+                ? {
+                  year: tokenInstance.metadata.year || null,
+                  tags: tokenInstance.metadata.tags || [],
+                  name: tokenInstance.metadata.name || null,
+                  imageUrl: tokenInstance.metadata.image_url || null,
+                  homeUrl: tokenInstance.metadata.home_url || null,
+                  externalUrl: tokenInstance.metadata.external_url || null,
+                  description: tokenInstance.metadata.description || null,
+                  attributes: (tokenInstance.metadata.attributes || []).map(
+                    (attr: any) => ({
+                      value: attr.value || null,
+                      traitType: attr.trait_type || null,
+                    })
+                  ),
+                }
+                : null,
+            }
             : null,
           value: item.value || null,
         };
@@ -471,6 +487,122 @@ export const getTokenBalances = tool(
       "Token Balances",
       "Blockchain Data",
       "Token Information",
+    ],
+  }
+);
+
+export const getAddressTokenTransfers = tool(
+  async ({ addressHash }) => {
+    try {
+      console.log(
+        `\n\n========== Calling Blockscout get token transfers for address: ${addressHash} ==========\n\n`
+      );
+
+      const response = await axios
+        .get(
+          `https://eth.blockscout.com/api/v2/addresses/${addressHash}/token-transfers`,
+          {
+            params: {
+              type: 'ERC20',
+              filter: 'to | from'
+            }
+          }
+        )
+        .catch((err) => err.response);
+
+      if (response?.status === 404 && response?.data?.message === "Not found") {
+        return JSON.stringify(
+          {
+            message: `No token transfers found for address: ${addressHash}`,
+          },
+          null,
+          2
+        );
+      }
+
+      const rawData = response.data.items;
+
+      const parsedData = rawData.map((item: any) => ({
+        blockNumber: item.block_number,
+        timestamp: item.timestamp,
+        type: item.type,
+        method: item.method,
+        from: {
+          hash: item.from.hash,
+          isContract: item.from.is_contract,
+          name: item.from.name || null,
+          ensDomain: item.from.ens_domain_name,
+          isVerified: item.from.is_verified,
+        },
+        to: {
+          hash: item.to.hash,
+          isContract: item.to.is_contract,
+          name: item.to.name || null,
+          ensDomain: item.to.ens_domain_name,
+          isVerified: item.to.is_verified,
+        },
+        token: {
+          address: item.token.address,
+          name: item.token.name,
+          symbol: item.token.symbol,
+          decimals: item.token.decimals,
+          type: item.token.type,
+          holders: item.token.holders,
+          totalSupply: item.token.total_supply,
+          exchangeRate: item.token.exchange_rate,
+          iconUrl: item.token.icon_url,
+          marketCap: item.token.circulating_market_cap,
+          volume24h: item.token.volume_24h,
+        },
+        value: {
+          raw: item.total.value,
+          decimals: item.total.decimals,
+          formatted: parseFloat(item.total.value) / Math.pow(10, parseInt(item.total.decimals))
+        },
+        txHash: item.tx_hash,
+      }));
+
+      return JSON.stringify(parsedData, null, 2);
+    } catch (error: any) {
+      console.error("Error getting token transfers:", error);
+      return JSON.stringify(
+        {
+          message: `Error retrieving token transfers for address: ${addressHash}`,
+          error: error.message
+        },
+        null,
+        2
+      );
+    }
+  },
+  {
+    name: "get_address_token_transfers",
+    description: `
+      Fetches ERC-20 token transfers (both incoming and outgoing) for a specific address from Blockscout.
+      
+      Features:
+      - Retrieves both incoming and outgoing token transfers
+      - Includes detailed information about the tokens, transactions, and involved addresses
+      - Formats token values with proper decimal handling
+      - Includes ENS domain resolution where available
+      
+      Use Cases:
+      - Track token transfer history for an address
+      - Monitor token movement patterns
+      - Analyze token transaction volumes
+    `,
+    schema: z.object({
+      addressHash: z
+        .string()
+        .describe(
+          "The address hash to retrieve token transfers for"
+        ),
+    }),
+    tags: [
+      "Blockscout",
+      "Token Transfers",
+      "ERC-20",
+      "Transaction History",
     ],
   }
 );

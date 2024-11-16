@@ -28,6 +28,7 @@ import {
   getTokenBalances,
   getTransactionHashSummary,
   metadata as blockscoutMetadata,
+  getAddressTokenTransfers,
 } from "./blockscout";
 import {
   getUserPostsTool,
@@ -64,6 +65,7 @@ class PluginRegistry {
     getStats,
     getTransactionHashSummary,
     getTokenBalances,
+    getAddressTokenTransfers,
 
     /* ----------------------------- Contract Caller ---------------------------- */
     getERC20InfoTool,

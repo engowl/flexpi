@@ -75,6 +75,7 @@ export const getParserSystemPrompt = () => {
     `If multiple pair is found and confusing, ignore unpopular chain. Focus only on Ethereum mainnet (chain id: 1).`,
     `If you got only the token symbol, use the search_pairs tool from DexScreener to get the token address and then use get_pairs_by_token tool to get the token's market data.`,
     `If asked about specific token market cap, focus on the one that have the biggest market cap, volume, and liquidity.`,
+    `For the token value or amount stuff, keep in mind to incorporates the decimals of the token. Most token have 18 decimals, but most stablecoin like USDC, USDT, DAI have 6 decimals.`,
   ];
 
   const prompt = `

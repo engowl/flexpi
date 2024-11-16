@@ -90,7 +90,7 @@ switch (process.env.AI_MODE) {
     console.log(`Using OpenAI`);
     model = new ChatOpenAI({
       openAIApiKey: process.env.OPENAI_API_KEY,
-      modelName: 'gpt-4o-mini',
+      modelName: 'gpt-4-turbo',
       temperature: 0,
       verbose: true,
     }).bindTools(pluginRegistry.getTools());
