@@ -533,16 +533,18 @@ export default function CreatePage() {
               </div>
               <CardBody>
                 {fields.length > 0 ? (
-                  fields.map((field, index) => (
-                    <RecursiveInput
-                      key={index}
-                      path={[index]}
-                      field={field}
-                      updateField={updateField}
-                      handleAddSubItem={handleAddSubItem}
-                      removeField={removeField}
-                    />
-                  ))
+                  <div className="w-full flex flex-col gap-4">
+                    {fields.map((field, index) => (
+                      <RecursiveInput
+                        key={index}
+                        path={[index]}
+                        field={field}
+                        updateField={updateField}
+                        handleAddSubItem={handleAddSubItem}
+                        removeField={removeField}
+                      />
+                    ))}
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center h-32 text-center text-sm text-black opacity-60">
                     No fields added yet
@@ -678,8 +680,8 @@ function RecursiveInput({
   removeField,
 }) {
   return (
-    <div className="space-y-2 ml-4">
-      <div className="flex items-center gap-4 p-3 rounded-lg">
+    <div className="space-y-4 ml-3">
+      <div className="flex items-center gap-4 rounded-lg">
         <Switch
           isSelected={field.isEnabled}
           onValueChange={(checked) => updateField(path, "isEnabled", checked)}
