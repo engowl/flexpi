@@ -57,6 +57,8 @@ export default function CreatePage() {
   const [searchParams] = useSearchParams();
   const libraryId = searchParams.get("id");
 
+  const [isTemplate, setIsTemplate] = useState(false);
+
   const { data: libraryTemplate, isLoading: isLibraryTemplateLoading } = useSWR(
     libraryId ? `/api/${libraryId}` : null,
     async (url) => {
@@ -91,8 +93,17 @@ export default function CreatePage() {
         }
       });
 
+      // Set all items isExpanded to true 
+      libraryTemplate.schema.items.forEach((item) => {
+        item.isExpanded = true;
+      })
+
       // set data structure
       setFields(libraryTemplate.schema.items);
+
+      setIsTemplate(true);
+    } else {
+      setIsTemplate(false);
     }
   }, [libraryTemplate]);
 
@@ -279,21 +290,7 @@ export default function CreatePage() {
 
       console.log(generatedSchema);
       // Real
-      // const res = await flexpiAPI.post("/api/call",
-      //   {
-      //     schema: { ...JSON.parse(generatedSchema) },
-      //     libraryId: libraryId ?? null,
-      //   },
-      //   {
-      //     headers: {
-      //       "Flex-api-key": apiStats.apiKey,
-      //     },
-      //   }
-      // );
-
-      // Dummy
-      const res = await flexpiAPI.post(
-        "/api/call/dummy",
+      const res = await flexpiAPI.post("/api/call",
         {
           schema: { ...JSON.parse(generatedSchema) },
           libraryId: libraryId ?? null,
@@ -304,6 +301,20 @@ export default function CreatePage() {
           },
         }
       );
+
+      // Dummy
+      // const res = await flexpiAPI.post(
+      //   "/api/call/dummy",
+      //   {
+      //     schema: { ...JSON.parse(generatedSchema) },
+      //     libraryId: libraryId ?? null,
+      //   },
+      //   {
+      //     headers: {
+      //       "Flex-api-key": apiStats.apiKey,
+      //     },
+      //   }
+      // );
 
       setResponse(res.data);
 
@@ -339,6 +350,43 @@ export default function CreatePage() {
   const handleApiNameChange = (e) => {
     setApiName(e.target.value);
   };
+
+
+  const [endpointPreview, setEndpointPreview] = useState("");
+  // On variable change
+  const handleGenerateEndpointPreview = () => {
+    const endpoint = `http://localhost:3700/api/${libraryId}`;
+
+    // Add the params based on the variables
+    console.log({ variables });
+
+    //   variables example:
+    //   {
+    //     "variables": [
+    //         {
+    //             "key": "ens",
+    //             "name": "",
+    //             "description": "",
+    //             "value": "eeessssss"
+    //         }
+    //     ]
+    // }
+
+    // On the case above, the params will be ?ens=eeessssss
+
+    const params = variables
+      .map((variable) => `${variable.key}=${variable.value}`)
+      .join("&");
+
+
+    const finalEndpoint = `${endpoint}?${params}`;
+    setEndpointPreview(finalEndpoint);
+  };
+
+  useEffect(() => {
+    handleGenerateEndpointPreview();
+  }, [variables]);
+
 
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
@@ -441,6 +489,23 @@ export default function CreatePage() {
             </Card>
 
             <Card className="px-4 py-3">
+              <CardHeader className="border-b">
+                <h1 className="font-neuton text-xl">
+                  Endpoint Preview
+                </h1>
+              </CardHeader>
+              <CardBody>
+                {endpointPreview ? 
+                  <>
+                    {endpointPreview}
+                  </>
+                  :
+                  ""
+                }
+              </CardBody>
+            </Card>
+
+            <Card className="px-4 py-3">
               <CardHeader className="justify-between border-b">
                 <h1 className="font-neuton text-xl">Response Data Structure</h1>
                 <div className="flex gap-2">
@@ -535,7 +600,7 @@ export default function CreatePage() {
                               input: "h-8",
                               base: "flex-1 min-w-[100px]",
                             }}
-                            placeholder="Description"
+                            placeholder="Description (optional)"
                             size="sm"
                           />
                           {field.dataType === "object" && (
@@ -648,7 +713,7 @@ export default function CreatePage() {
                                         )
                                       }
                                       className="flex-1"
-                                      placeholder="Description"
+                                      placeholder="Description (optional)"
                                       size="sm"
                                       isDisabled={!field.isEnabled}
                                     />
