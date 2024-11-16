@@ -33,9 +33,7 @@ export default function Library() {
       <div className="min-w-[500px]">
         <Table aria-label="Documents Table" shadow="none">
           <TableHeader>
-            <TableColumn className="font-medium text-black">
-              API Name
-            </TableColumn>
+            <TableColumn className="font-medium text-black">Name</TableColumn>
             <TableColumn className="font-medium text-black">
               Endpoint URL
             </TableColumn>

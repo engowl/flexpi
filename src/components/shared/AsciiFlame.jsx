@@ -77,7 +77,7 @@ const AsciiFlame = () => {
       <div
         ref={flameRef}
         style={{
-          color: "#B6FA89",
+          color: "#88E64C",
           fontSize: "10px",
           whiteSpace: "pre",
           opacity: 1,

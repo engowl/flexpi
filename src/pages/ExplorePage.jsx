@@ -1,4 +1,4 @@
-import Explore from "../components/explore/explore.jsx";
+import Explore from "../components/explore/Explore.jsx";
 
 export default function ExplorePage() {
   return (
