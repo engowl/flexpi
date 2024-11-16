@@ -33,9 +33,8 @@ export default function UserProvider({ children }) {
     setLibraryLoading(true);
     try {
       //TODO: implement with actual api
-      //   const res = await flexpiAPI.get(`/user/library`);
-      //   setLibrary(res.data);
-      setLibrary([]);
+      const res = await flexpiAPI.get(`/api/user-libraries`);
+      setLibrary(res.data.data);
     } catch (error) {
       console.error("Error fetching user library", error);
       toast.error("Error fetching user library");

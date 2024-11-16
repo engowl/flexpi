@@ -269,9 +269,17 @@ export default function CreatePage() {
 
       console.log(generatedSchema);
       // Real
-      // const res = await flexpiAPI.post("/api/call", {
-      //   ...JSON.parse(generatedSchema),
-      // });
+      // const res = await flexpiAPI.post("/api/call",
+      //   {
+      //     schema: { ...JSON.parse(generatedSchema) },
+      //     libraryId: libraryId ?? null,
+      //   },
+      //   {
+      //     headers: {
+      //       "Flex-api-key": apiStats.apiKey,
+      //     },
+      //   }
+      // );
 
       // Dummy
       const res = await flexpiAPI.post(

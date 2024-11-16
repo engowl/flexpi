@@ -11,13 +11,14 @@ import {
 import { BiSolidCopy } from "react-icons/bi";
 import toast from "react-hot-toast";
 import { IoClose } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 
 export default function Library() {
   const { library, isLibaryLoading } = useUser();
   const navigate = useNavigate();
 
-  console.log({ libraries });
+  console.log({ library });
 
   return (
     <div className="flex flex-col w-full gap-10">
@@ -49,9 +50,9 @@ export default function Library() {
               <TableColumn className="font-medium text-black">
                 Usage Count
               </TableColumn>
-              <TableColumn className="font-medium text-black">
+              {/* <TableColumn className="font-medium text-black">
                 Plugins
-              </TableColumn>
+              </TableColumn> */}
               <TableColumn className="font-medium text-black ">
                 Date Created
               </TableColumn>
@@ -59,18 +60,16 @@ export default function Library() {
                 Last Call
               </TableColumn>
               <TableColumn className="font-medium text-black ">
-                Status
+                Action
               </TableColumn>
             </TableHeader>
             <TableBody>
               {library.map((library, idx) => (
                 <TableRow key={idx}>
-                  <TableCell>Name</TableCell>
+                  <TableCell>{library.name}</TableCell>
                   <TableCell>
                     <div className="bg-[#F2F2F2] px-4 py-2 rounded-xl w-44 overflow-hidden flex flex-row items-center gap-4">
-                      <p className="truncate">
-                        {"curl-flexpi.<APIKEY>100.dmedmkemfnkwnfefee"}
-                      </p>
+                      <p className="truncate">{library.endpointURL}</p>
 
                       <button
                         onClick={() => {
@@ -79,19 +78,29 @@ export default function Library() {
                             duration: 1000,
                             position: "bottom-center",
                           });
-                          navigator.clipboard.writeText("text");
+                          navigator.clipboard.writeText(
+                            library.endpointURL || ""
+                          );
                         }}
                       >
                         <BiSolidCopy className="text-[#767676] size-[16px]" />
                       </button>
                     </div>
                   </TableCell>
-                  <TableCell>1000</TableCell>
-                  <TableCell>Pyth, X API, blockscout</TableCell>
-                  <TableCell>Nov 16, 2024</TableCell>
-                  <TableCell>17:00:00 | Nov 16, 2024</TableCell>
+                  <TableCell>{library.usageCount}</TableCell>
+                  {/* <TableCell>Pyth, X API, blockscout</TableCell> */}
                   <TableCell>
-                    <Actions />
+                    {dayjs(library.createdAt).format("MMM D, YYYY")}
+                  </TableCell>
+                  <TableCell>
+                    {library.lastCallDate
+                      ? dayjs(library.lastCallDate).format(
+                          "HH:mm:ss | MMM D, YYYY"
+                        )
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <Actions id={library.id} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -107,13 +116,19 @@ export default function Library() {
   );
 }
 
-const Actions = () => {
+const Actions = ({ id }) => {
   return (
     <div className="flex flex-row gap-5 items-center">
-      <Switch defaultSelected aria-label="Automatic updates" color="primary" />
+      {/* <Switch defaultSelected aria-label="Automatic updates" color="primary" />
       <button className="p-1.5 rounded-md bg-[#F6F6F6]">
         <IoClose className="text-black" size={16} />
-      </button>
+      </button> */}
+      <Link
+        to={`/create?id=${id}`}
+        className="px-3 py-2 rounded-lg bg-primary text-black"
+      >
+        Try
+      </Link>
     </div>
   );
 };
