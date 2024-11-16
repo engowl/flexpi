@@ -6,29 +6,29 @@ import { flexpiAPI } from "../api/flexpi.js";
 import toast from "react-hot-toast";
 
 const UserContext = createContext({
-  libraries: [],
+  library: [],
   userData: {},
 });
 
 export default function UserProvider({ children }) {
   const { isSignedIn } = useSession();
   const { userData } = useAuth();
-  const [libraries, setLibraries] = useState([]);
-  const [isLibariesLoading, setLibrariesLoading] = useState(false);
+  const [library, setLibrary] = useState([]);
+  const [isLibariesLoading, setLibraryLoading] = useState(false);
 
   const fetchLibaries = async () => {
     if (isLibariesLoading) return;
-    setLibrariesLoading(true);
+    setLibraryLoading(true);
     try {
       //TODO: implement with actual api
-      //   const res = await flexpiAPI.get(`/user/libraries`);
-      //   setLibraries(res.data);
-      setLibraries([]);
+      //   const res = await flexpiAPI.get(`/user/library`);
+      //   setLibrary(res.data);
+      setLibrary([]);
     } catch (error) {
-      console.error("Error fetching user libraries", error);
-      toast.error("Error fetching user libraries");
+      console.error("Error fetching user library", error);
+      toast.error("Error fetching user library");
     } finally {
-      setLibrariesLoading(false);
+      setLibraryLoading(false);
     }
   };
 
@@ -46,7 +46,7 @@ export default function UserProvider({ children }) {
     <UserContext.Provider
       value={{
         userData: userData,
-        libraries: libraries,
+        library: library,
       }}
     >
       {children}

@@ -9,6 +9,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { isGetStartedDialogOpenAtom } from "../store/dialog-store.js";
+import { useListenEvent } from "../hook/use-event.jsx";
 
 const AuthContext = createContext({
   userData: {},
@@ -37,6 +38,10 @@ export default function AuthProvider({ children }) {
     }
   );
 
+  useListenEvent("create-api-key-dialog", () => {
+    mutate();
+  });
+
   const login = async (user) => {
     if (isSigningIn || !user || !primaryWallet) return;
 
@@ -60,9 +65,6 @@ export default function AuthProvider({ children }) {
       setAccessToken(token);
       mutate();
       navigate("/");
-      toast.success("Signed in successfully", {
-        id: "signing",
-      });
     } catch (e) {
       toast.error("Error signing in", {
         id: "signing",
