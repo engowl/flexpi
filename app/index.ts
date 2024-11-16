@@ -9,6 +9,7 @@ import { apiRoutes } from "./routes/apiRoutes";
 import generateApiKey from "./utils/apiUtils";
 import { userRoutes } from "./routes/userRoutes";
 import { ensSubgraphTool, uniswapV3SubgraphTool } from "./plugins/the-graph";
+import { rateLimiterMiddleware } from "./routes/middlewares/rateLimiterMiddleware";
 
 const fastify = Fastify();
 
@@ -17,6 +18,8 @@ fastify.register(FastifyCors, {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "Flex-api-key"],
 });
+
+fastify.addHook('onRequest', rateLimiterMiddleware)
 
 // Experimental Routes
 fastify.register(experimentalRoutes, {
