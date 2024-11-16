@@ -11,6 +11,7 @@ import { getPairsByTokenTool, searchPairsTool } from "../plugins/dexscreener";
 import { getRealTimePriceOracleTool } from "../plugins/pyth-price-feeds";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatOpenAI } from "@langchain/openai";
+import { safeJsonParser } from "../utils/miscUtils";
 
 const StateAnnotation = Annotation.Root({
   messages: Annotation<BaseMessage[]>({
@@ -326,7 +327,7 @@ export async function run(prompt: string, callId: string): Promise<any> {
 
     console.log('jsonFormatterResponse', jsonFormatterResponse);
 
-    return JSON.parse(jsonFormatterResponse.content as string);
+    return safeJsonParser(jsonFormatterResponse.content as string);
   } else {
     // Format the response as JSON
     const llamaGenResponse = await axios.post('http://localhost:11434/api/generate', {

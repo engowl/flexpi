@@ -143,3 +143,10 @@ export function interpolateVariables(schema: Schema): Schema {
 
   return interpolatedSchema;
 }
+
+export const convertQueryToSchemaVariables = (query: Record<string, string>): SchemaVariable[] => {
+  return Object.entries(query).map(([key, value]) => ({
+    key,
+    value,
+  }));
+};

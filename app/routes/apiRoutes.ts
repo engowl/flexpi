@@ -4,9 +4,9 @@ import {
   FastifyReply,
   FastifyRequest,
 } from "fastify";
-import { Schema } from "../types/common";
+import { Schema, SchemaVariable } from "../types/common";
 import { pluginRegistry } from "../plugins/plugin-registry";
-import { interpolateVariables, schemaToPrompt } from "../core/utils/schema";
+import { convertQueryToSchemaVariables, interpolateVariables, schemaToPrompt } from "../core/utils/schema";
 import { run } from "../core/FlexPiEngine";
 import { logAPICall } from "./helpers/logging";
 import { generateCallId } from "../utils/apiUtils";
@@ -103,6 +103,8 @@ export const apiRoutes: FastifyPluginCallback = (
           data: res,
         };
 
+        console.log("response", response);
+
         return response;
       } catch (error) {
         console.log("/call error", error);
@@ -157,6 +159,84 @@ export const apiRoutes: FastifyPluginCallback = (
     name: string;
     schema: Record<string, any>;
   }
+
+  app.get(
+    "/:apiId/call",
+    {
+      preHandler: [authMiddleware],
+    }, async (request: FastifyRequest, reply) => {
+      const { userId } = (request as any).user;
+      const { apiId } = request.params as any;
+      const params = request.query as Record<string, string>;
+      const schemaVariables: SchemaVariable[] = convertQueryToSchemaVariables(params);
+      console.log("schemaVariables", schemaVariables);
+
+      const library = await prismaClient.library.findFirst({
+        where: {
+          id: apiId,
+        },
+      });
+
+      if (!library || !library.schema || !library.query) {
+        return reply.code(404).send({
+          message: "API not found",
+        });
+      }
+
+      console.log("library", library);
+
+      const parsedSchema = JSON.parse(JSON.stringify(library.schema)) as any;
+      console.log("parsedSchema", parsedSchema);
+
+      const interpolatedSchema = interpolateVariables({
+        query: library.query,
+        items: parsedSchema.items,
+        variables: schemaVariables,
+      });
+
+      console.log("interpolatedSchema", interpolatedSchema);
+
+      const schemaPrompt = schemaToPrompt(interpolatedSchema);
+      console.log("schemaPrompt", schemaPrompt);
+
+      const prompt = `
+      User Query: ${interpolatedSchema.query}
+      ${schemaPrompt}
+    `;
+
+      const start = performance.now();
+
+      const callId = generateCallId();
+      console.log("callId", callId);
+
+      const res = await run(prompt, callId);
+      console.log("res", res);
+
+      // DUMMY RETURN
+      // await sleep(3000);
+      // const res = {
+      //   "hello": "world"
+      // }
+
+      const duration = Math.round(performance.now() - start);
+
+      logAPICall({
+        libraryId: library.id,
+        userId: userId,
+        schema: library.schema as any,
+        duration: duration,
+        response: res,
+      });
+
+      const response = {
+        duration: duration,
+        data: res,
+      };
+
+      console.log("response", response);
+
+      return response;
+    })
 
   // TODO: Save to library API
   app.post(
@@ -432,6 +512,9 @@ export const apiRoutes: FastifyPluginCallback = (
 
         const history = await prismaClient.apiCall.findMany({
           where: { userId: user.id },
+          orderBy: {
+            createdAt: "desc",
+          }
         });
 
         return {
@@ -486,8 +569,6 @@ export const apiRoutes: FastifyPluginCallback = (
             lastCallDate,
           };
         });
-
-        console.log({ libraries });
 
         return {
           data: libraries ?? null,
