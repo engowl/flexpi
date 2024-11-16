@@ -70,18 +70,18 @@ const UserProfileButton = () => {
           <NavLink
             key={"history-navigation"}
             to={"/history"}
-            className="h-11 px-5 text-sm rounded-lg w-fit bg-[#F2F2F2] hover:bg-[#727272]/20 flex items-center gap-2"
+            className="h-11 px-5 text-sm rounded-lg w-fit bg-[#F2F2F2] hover:bg-[#727272]/20 flex items-center gap-2 font-medium"
           >
             <HistoryIcon size={14} />
             <p className="hidden md:block">History</p>
           </NavLink>
 
-          <div className="px-5 h-11 bg-[#F2F2F2] text-sm rounded-lg flex items-center justify-center">
+          <div className="px-5 h-11 bg-[#F2F2F2] text-sm rounded-lg flex items-center justify-center font-medium">
             {userData.apiCredits} Credits
           </div>
           <button
             onClick={() => setShowDynamicUserProfile(true)}
-            className="px-5 h-11 flex flex-row gap-2 items-center justify-center bg-primary/20 hover:bg-primary/30 rounded-lg"
+            className="px-5 h-11 flex flex-row gap-2 items-center justify-center bg-primary/20 hover:bg-primary/30 rounded-lg font-medium"
           >
             <h1 className="text-sm hidden md:block text-primary-800">
               {shortenAddress(primaryWallet?.address)}

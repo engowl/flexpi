@@ -24,6 +24,7 @@ import {
   ModalFooter,
   Textarea,
 } from "@nextui-org/react";
+import { BsStars } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
@@ -107,7 +108,7 @@ export default function CreatePage() {
         .map((field) => {
           const cleanField = {
             key: field.key,
-            dataType: field.dataType.toLowerCase(),
+            dataType: field.dataType?.toLowerCase(),
             description: field.description,
             ...(field.isArray && { isArray: true }),
           };
@@ -552,16 +553,18 @@ export default function CreatePage() {
               </div>
               <CardBody>
                 {fields.length > 0 ? (
-                  fields.map((field, index) => (
-                    <RecursiveInput
-                      key={index}
-                      path={[index]}
-                      field={field}
-                      updateField={updateField}
-                      handleAddSubItem={handleAddSubItem}
-                      removeField={removeField}
-                    />
-                  ))
+                  <div className="w-full flex flex-col gap-4">
+                    {fields.map((field, index) => (
+                      <RecursiveInput
+                        key={index}
+                        path={[index]}
+                        field={field}
+                        updateField={updateField}
+                        handleAddSubItem={handleAddSubItem}
+                        removeField={removeField}
+                      />
+                    ))}
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center h-32 text-center text-sm text-black opacity-60">
                     No fields added yet
@@ -572,11 +575,11 @@ export default function CreatePage() {
                 <Button
                   color="primary"
                   onClick={handleRequestData}
-                  className="bg-[#B6FA89] text-[#1F4D00] font-medium"
+                  className="bg-[#B6FA89] text-[#1F4D00] font-medium flex gap-1"
                   isDisabled={!fields.length > 0}
                   isLoading={isLoading}
                 >
-                  <WandSparkles size={18} />
+                  <BsStars size={18} />
                   Request Data
                 </Button>
               </CardFooter>
@@ -697,8 +700,8 @@ function RecursiveInput({
   removeField,
 }) {
   return (
-    <div className="space-y-2 ml-4">
-      <div className="flex items-center gap-4 p-3 rounded-lg">
+    <div className="space-y-4 ml-3">
+      <div className="flex items-center gap-4 rounded-lg">
         <Switch
           isSelected={field.isEnabled}
           onValueChange={(checked) => updateField(path, "isEnabled", checked)}
@@ -714,7 +717,7 @@ function RecursiveInput({
           }}
         />
         <Select
-          selectedKeys={[field.dataType]}
+          // selectedKeys={[field.dataType]}
           onSelectionChange={(selected) =>
             updateField(path, "dataType", selected.currentKey)
           }
@@ -722,6 +725,7 @@ function RecursiveInput({
           className="w-24"
           aria-label="data-type"
           isDisabled={field.subItems && field.subItems.length > 0}
+          defaultSelectedKeys={["string"]}
         >
           <SelectItem key="string">String</SelectItem>
           <SelectItem key="number">Number</SelectItem>
@@ -746,7 +750,7 @@ function RecursiveInput({
           placeholder="Description"
           size="sm"
         />
-        {field.dataType === "Object" && (
+        {field.dataType === "object" && (
           <Button
             isIconOnly
             variant="light"
