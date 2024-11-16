@@ -191,9 +191,9 @@ export const apiRoutes: FastifyPluginCallback = (
         }
 
         const apiStatsData = {
-          apiKey: user.apiKey?.key,
-          apiKeyMaxLimit: user.apiKey?.maxLimit,
-          apiKeyCurrentUsage: user.apiKey?.usageCount,
+          apiKey: user.apiKey?.key ?? null,
+          apiKeyMaxLimit: user.apiKey?.maxLimit ?? null,
+          apiKeyCurrentUsage: user.apiKey?.usageCount ?? null,
         };
 
         return {
