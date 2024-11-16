@@ -48,7 +48,7 @@ const Card = ({ lib }) => {
   return (
     <Link
       to={`/create?id=${lib.id}`}
-      className="col-span-12 md:col-span-3 bg-white rounded-lg p-6 flex flex-col gap-2"
+      className="col-span-12 md:col-span-3 bg-white hover:bg-white/70 rounded-lg p-6 flex flex-col gap-2 transition-colors duration-200"
     >
       <h1 className="font-medium  text-black mt-2">{lib.name}</h1>
       <h1 className="font-medium  text-black/50 text-sm mt-2">

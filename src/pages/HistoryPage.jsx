@@ -70,92 +70,108 @@ const HistoryPage = () => {
   };
 
   return (
-    <div className="mt-28 mx-auto items-center flex flex-col">
-      <Card className="w-full max-w-3xl">
-        <CardHeader>
-          <h1 className="text-2xl w-full text-center">History</h1>
-        </CardHeader>
-        <CardBody>
-          {loading ? (
-            <div className="flex justify-center">
-              <Spinner />
-            </div>
-          ) : (
-            <Table aria-label="History">
-              <TableHeader>
-                <TableColumn>Query</TableColumn>
-                <TableColumn>Time</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent={"No history found"}>
-                {data.length > 0 &&
-                  data.map((item, index) => {
-                    const query = item.schema?.query || "Unknown Query";
-                    const createdAt =
-                      item.createdAt || item.response?.createdAt;
+    <main className="min-h-screen flex flex-col gap-10 pt-32 pb-20 px-5 md:px-10 bg-[#F2F2F2] overflow-hidden">
+      <h1 className="text-3xl font-neuton text-black">History</h1>
 
-                    return (
-                      <TableRow key={item.id || index}>
-                        <TableCell>{query || ""}</TableCell>
-                        <TableCell className="items-center flex justify-between">
-                          {createdAt
-                            ? getRelativeTime(createdAt)
-                            : "Unknown Time"}
-                          <Button
-                            variant="light"
-                            className="w-fit"
-                            onClick={() => handleOpenModal(item)}
-                          >
-                            <EyeIcon size={16} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
-          )}
-        </CardBody>
-      </Card>
+      <div className="items-center flex flex-col w-full">
+        <div className="w-full">
+          <div>
+            {loading ? (
+              <div className="flex justify-center">
+                <Spinner />
+              </div>
+            ) : (
+              <div className="min-w-[300px]">
+                <Table aria-label="History" shadow="none">
+                  <TableHeader>
+                    <TableColumn className="font-medium text-black ">
+                      No
+                    </TableColumn>
+                    <TableColumn className="font-medium text-black ">
+                      Query
+                    </TableColumn>
+                    <TableColumn className="font-medium text-black ">
+                      Duration
+                    </TableColumn>
+                    <TableColumn className="font-medium text-black ">
+                      Time
+                    </TableColumn>
+                  </TableHeader>
+                  <TableBody emptyContent={"No history found"}>
+                    {data.length > 0 &&
+                      data.map((item, index) => {
+                        const query = item.schema?.query || "Unknown Query";
+                        const createdAt =
+                          item.createdAt || item.response?.createdAt;
 
-      {/* Modal for displaying item details */}
-      {selectedItem && (
-        <Modal
-          className="w-full max-w-3xl"
-          isOpen={isModalOpen} 
-          onOpenChange={handleCloseModal}
-        >
-          <ModalContent>
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                Query Details
-              </ModalHeader>
-              <ModalBody>
-                <p>Schema</p>
-                <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
-                  {JSON.stringify(selectedItem.schema, null, 2)}
-                </pre>
-                <p>Response</p>
-                <JsonView
-                  value={selectedItem.response}
-                  theme={monokaiTheme}
-                  collapsed={false}
-                  shortenTextAfterLength={1000}
-                  className="py-4 px-4 rounded-xl border"
-                  displayDataTypes={false}
-                  enableClipboard
-                  indentWidth={4}
-                />
-              </ModalBody>
-              <ModalFooter>
-                <Button auto onClick={handleCloseModal}>
-                  Close
-                </Button>
-              </ModalFooter>
-            </>
-          </ModalContent>
-        </Modal>
-      )}
-    </div>
+                        return (
+                          <TableRow key={item.id || index}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{query || ""}</TableCell>
+                            <TableCell>{item.duration / 1000}s</TableCell>
+                            <TableCell className="items-center flex justify-between">
+                              {createdAt
+                                ? getRelativeTime(createdAt)
+                                : "Unknown Time"}
+                              <Button
+                                variant="light"
+                                className="w-fit"
+                                onClick={() => handleOpenModal(item)}
+                              >
+                                <EyeIcon size={16} />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Modal for displaying item details */}
+        {selectedItem && (
+          <Modal
+            className="w-full max-w-3xl"
+            isOpen={isModalOpen}
+            onOpenChange={handleCloseModal}
+            hideCloseButton
+          >
+            <ModalContent>
+              <>
+                <ModalHeader className="flex flex-col gap-1 font-neuton text-2xl">
+                  Query Details
+                </ModalHeader>
+                <ModalBody>
+                  <p className="font-neuton">Schema</p>
+                  <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
+                    {JSON.stringify(selectedItem.schema, null, 2)}
+                  </pre>
+                  <p className="font-neuton">Response</p>
+                  <JsonView
+                    value={selectedItem.response}
+                    theme={monokaiTheme}
+                    collapsed={false}
+                    shortenTextAfterLength={1000}
+                    className="py-4 px-4 rounded-xl border"
+                    displayDataTypes={false}
+                    enableClipboard
+                    indentWidth={4}
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button auto onClick={handleCloseModal}>
+                    Close
+                  </Button>
+                </ModalFooter>
+              </>
+            </ModalContent>
+          </Modal>
+        )}
+      </div>
+    </main>
   );
 };
 
