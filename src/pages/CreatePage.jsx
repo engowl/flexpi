@@ -16,6 +16,7 @@ import {
   Tab,
 } from "@nextui-org/react";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
+import PluginList from "../components/shared/PluginList";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -186,7 +187,7 @@ export default function CreatePage() {
       <div className="grid grid-cols-2 mx-10 gap-4">
         <div className="w-full">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               Generate API Using Simple Prompts and Data Structure
             </h1>
           </div>
@@ -515,6 +516,10 @@ export default function CreatePage() {
         </div>
 
         <div className="flex w-full flex-col">
+          <div className="mb-4">
+            <PluginList />
+          </div>
+
           <Tabs aria-label="Options" variant="underlined">
             <Tab key="gennedSchema" title="Generated Schema">
               <Card>
