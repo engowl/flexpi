@@ -4,12 +4,21 @@ import useSWR from "swr";
 import { Spinner } from "@nextui-org/react";
 import { shortenAddress } from "../../utils/style.js";
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Explore() {
-  const { data, isLoading } = useSWR("/api/explore", async (url) => {
+  const { data, mutate, isLoading } = useSWR("/api/explore", async (url) => {
     const { data } = await flexpiAPI.get(url);
     return data.data;
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      mutate();
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [mutate]);
 
   return (
     <div className="flex flex-col w-full gap-10">
