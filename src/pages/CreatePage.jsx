@@ -56,6 +56,8 @@ export default function CreatePage() {
   const [searchParams] = useSearchParams();
   const libraryId = searchParams.get("id");
 
+  const [isTemplate, setIsTemplate] = useState(false);
+
   const { data: libraryTemplate } = useSWR(
     libraryId ? `/api/${libraryId}` : null,
     async (url) => {
@@ -90,6 +92,7 @@ export default function CreatePage() {
 
       // Set data structure
       setFields(enabledItems);
+      setIsTemplate(true);
     }
   }, [libraryTemplate]);
 
@@ -357,6 +360,13 @@ export default function CreatePage() {
 
   const handleApiNameChange = (e) => {
     setApiName(e.target.value);
+  };
+
+  const [endpointPreview, setEndpointPreview] = useState("");
+
+  const handleGenerateEndpointPreview = () => {
+    // If params is ens, value is abc,
+    // Then it will be like http://localhost:5700/api/<api-id>/call?ens=abc
   };
 
   return (
