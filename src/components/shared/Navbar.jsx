@@ -7,6 +7,7 @@ import {
 } from "@dynamic-labs/sdk-react-core";
 import Nounsies from "./Nounsies.jsx";
 import { useUser } from "../../providers/UserProvider.jsx";
+import { Skeleton } from "@nextui-org/react";
 
 const LINKS = [
   { title: "Library", href: "/" },
@@ -60,8 +61,8 @@ const UserProfileButton = () => {
   const { userData } = useUser();
 
   return (
-    <div className={"relative flex flex-col"}>
-      {primaryWallet && (
+    <div className={"relative flex flex-row"}>
+      {primaryWallet ? (
         <div className="flex flex-row items-center justify-center gap-2">
           <div className="px-5 h-11 bg-[#F2F2F2] text-sm rounded-lg flex items-center justify-center">
             {userData.apiCredits} Credits
@@ -77,6 +78,15 @@ const UserProfileButton = () => {
               <Nounsies address={primaryWallet?.address} />
             </div>
           </button>
+        </div>
+      ) : (
+        <div className="flex flex-row gap-2">
+          <Skeleton className="rounded-lg">
+            <div className="h-11 w-32 rounded-lg bg-[#F2F2F2]"></div>
+          </Skeleton>
+          <Skeleton className="rounded-lg">
+            <div className="h-11 w-40 rounded-lg bg-[#F2F2F2]"></div>
+          </Skeleton>
         </div>
       )}
 
