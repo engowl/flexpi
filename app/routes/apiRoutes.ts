@@ -26,7 +26,7 @@ export const apiRoutes: FastifyPluginCallback = (
 ) => {
   // TODO: Call the API saved to library
   app.get("/:libraryId", async (request, reply) => {
-    const libraryId = request.params as unknown as string;
+    const { libraryId } = request.params as any;
     try {
       const lib = await prismaClient.library.findFirst({
         where: {
@@ -61,9 +61,7 @@ export const apiRoutes: FastifyPluginCallback = (
       try {
         const { userId } = (request as any).user;
 
-        // TODO: Validate the API call amount here
-
-        const schema = request.body as Schema;
+        const { schema, libraryId } = request.body as any;
 
         const interpolatedSchema = interpolateVariables(schema);
         console.log("interpolated", interpolatedSchema);
@@ -93,6 +91,7 @@ export const apiRoutes: FastifyPluginCallback = (
         const duration = Math.round(performance.now() - start);
 
         logAPICall({
+          libraryId: libraryId,
           userId: userId,
           schema: schema,
           duration: duration,
@@ -123,7 +122,7 @@ export const apiRoutes: FastifyPluginCallback = (
       try {
         const { userId } = (request as any).user;
 
-        const schema = request.body as Schema;
+        const { schema, libraryId } = request.body as any;
         // await sleep(3000);
         const res = {
           hello: "world",
@@ -132,6 +131,7 @@ export const apiRoutes: FastifyPluginCallback = (
         await sleep(2000);
 
         logAPICall({
+          libraryId: libraryId,
           userId: userId,
           schema: schema,
           duration: 2000,
@@ -152,20 +152,6 @@ export const apiRoutes: FastifyPluginCallback = (
       }
     }
   );
-
-  // TODO: Call history API
-  app.get("/history", async (request, reply) => {
-    try {
-      return {
-        message: "Call history",
-      };
-    } catch (error) {
-      console.error(error);
-      return reply.code(500).send({
-        error: "Internal Server Error",
-      });
-    }
-  });
 
   interface SaveSchemaBody {
     name: string;
@@ -415,6 +401,103 @@ export const apiRoutes: FastifyPluginCallback = (
           data: null,
           message: "An error occurred while fetching libraries",
           error: process.env.NODE_ENV === "development" ? error : undefined,
+        });
+      }
+    }
+  );
+
+  app.get(
+    "/history",
+    {
+      preHandler: [authMiddleware],
+    },
+    async (
+      request: FastifyRequest<{
+        Querystring: LibraryQuerystring;
+      }>,
+      reply: FastifyReply
+    ) => {
+      const { userId } = (request as any).user;
+
+      try {
+        const user = await prismaClient.user.findFirst({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          return reply.status(400).send({
+            message: "User not found",
+          });
+        }
+
+        const history = await prismaClient.apiCall.findMany({
+          where: { userId: user.id },
+        });
+
+        return {
+          data: history,
+          message: "History retrieved successfully",
+        };
+      } catch (error) {
+        console.error("Error fetching libraries:", error);
+        return reply.status(500).send({
+          data: null,
+          message: "An error occurred while fetching libraries",
+          error: process.env.NODE_ENV === "development" ? error : undefined,
+        });
+      }
+    }
+  );
+
+  app.get(
+    "/user-libraries",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const { userId } = (request as any).user;
+
+      try {
+        const user = await prismaClient.user.findUnique({
+          where: {
+            id: userId,
+          },
+          include: {
+            libraries: {
+              include: {
+                apiCalls: {
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const libraries = user?.libraries.map((library) => {
+          const endpointURL = `http://localhost:3700/api/${library.id}`;
+          const lastCallDate =
+            library.apiCalls.length > 0 ? library.apiCalls[0].createdAt : null;
+          const usageCount = library.apiCalls.length;
+
+          return {
+            ...library,
+            endpointURL,
+            usageCount,
+            lastCallDate,
+          };
+        });
+
+        console.log({ libraries });
+
+        return {
+          data: libraries ?? null,
+          message: "Success getting user library",
+        };
+      } catch (e) {
+        console.log("Error while getting user library", e);
+        return reply.status(500).send({
+          message: "Error while getting user library",
+          data: null,
         });
       }
     }
