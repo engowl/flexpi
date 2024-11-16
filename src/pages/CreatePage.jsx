@@ -107,7 +107,7 @@ export default function CreatePage() {
         .map((field) => {
           const cleanField = {
             key: field.key,
-            dataType: field.dataType.toLowerCase(),
+            dataType: field.dataType?.toLowerCase(),
             description: field.description,
             ...(field.isArray && { isArray: true }),
           };
@@ -726,7 +726,7 @@ function RecursiveInput({
           placeholder="Description"
           size="sm"
         />
-        {field.dataType === "Object" && (
+        {field.dataType === "object" && (
           <Button
             isIconOnly
             variant="light"
