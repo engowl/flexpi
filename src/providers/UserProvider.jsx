@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 
 const UserContext = createContext({
   library: [],
+  isLibaryLoading: false,
   userData: {},
   apiStats: {
     apiKey: null,
@@ -19,7 +20,7 @@ export default function UserProvider({ children }) {
   const { isSignedIn } = useSession();
   const { userData } = useAuth();
   const [library, setLibrary] = useState([]);
-  const [isLibariesLoading, setLibraryLoading] = useState(false);
+  const [isLibaryLoading, setLibraryLoading] = useState(false);
   const [isApiStatsLoading, setApiStatsLoading] = useState(false);
   const [apiStats, setApiStats] = useState({
     apiKey: null,
@@ -27,8 +28,8 @@ export default function UserProvider({ children }) {
     apiKeyCurrentUsage: 0,
   });
 
-  const fetchLibaries = async () => {
-    if (isLibariesLoading) return;
+  const fetchLibrary = async () => {
+    if (isLibaryLoading) return;
     setLibraryLoading(true);
     try {
       //TODO: implement with actual api
@@ -62,15 +63,33 @@ export default function UserProvider({ children }) {
   };
 
   useListenEvent("create-api-key-dialog", () => {
-    fetchLibaries();
+    fetchLibrary();
     fetchApiStats();
   });
 
   useEffect(() => {
+    let interval;
+
+    const fetchData = async () => {
+      if (isSignedIn) {
+        await fetchLibrary();
+        await fetchApiStats();
+      }
+    };
+
     if (isSignedIn) {
-      fetchLibaries();
-      fetchApiStats();
+      fetchData();
+
+      interval = setInterval(() => {
+        fetchData();
+      }, 8000);
     }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [isSignedIn, userData]);
 
   return (
@@ -78,6 +97,7 @@ export default function UserProvider({ children }) {
       value={{
         userData: userData,
         library: library,
+        isLibaryLoading: isLibaryLoading,
         apiStats: apiStats,
       }}
     >
