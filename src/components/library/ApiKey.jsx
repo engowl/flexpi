@@ -38,7 +38,7 @@ export default function ApiKey() {
             flex-
             {showApiKey
               ? apiStats.apiKey.replace("flex-", "")
-              : "*".repeat(apiStats.apiKey.length - 5)}
+              : "*".repeat((apiStats.apiKey.length || 10) - 5)}
           </p>
           <div className="flex flex-row gap-3 items-center">
             <button
