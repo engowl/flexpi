@@ -102,6 +102,8 @@ Available Tools:
 # Cases reference:
 ${cases.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
+Only return the JSON response. Keep in mind to not include prefix and post-fix like ${'```json\n```'}. Just give the json directly
+
 Focus on delivering precise, well-structured JSON responses that exactly match the user's requirements.
 `;
 

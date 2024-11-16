@@ -28,6 +28,14 @@ import {
   getTransactionHashSummary,
   metadata as blockscoutMetadata,
 } from "./blockscout";
+import {
+  getUserPostsTool,
+  getUserTool,
+  searchLatestTweetsTool,
+  searchTopTweetsTool,
+  searchUsersTool,
+  metadata as twitterMetadata,
+} from "./untwitter";
 
 class PluginRegistry {
   private tools = [
@@ -40,6 +48,11 @@ class PluginRegistry {
     getPriceFeedsTool,
 
     /* --------------------------------- Twitter -------------------------------- */
+    searchTopTweetsTool,
+    searchLatestTweetsTool,
+    searchUsersTool,
+    getUserTool,
+    getUserPostsTool,
 
     /* ------------------------------- The Graph ------------------------------- */
     uniswapV3SubgraphTool,
@@ -65,6 +78,7 @@ class PluginRegistry {
     pythPriceFeedsMetadata,
     theGraphMetadata,
     blockscoutMetadata,
+    twitterMetadata,
     contractCallerMetadata,
   ];
 
