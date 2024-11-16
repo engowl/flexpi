@@ -55,6 +55,8 @@ export default function CreatePage() {
   const [searchParams] = useSearchParams();
   const libraryId = searchParams.get("id");
 
+  const [isTemplate, setIsTemplate] = useState(false);
+
   const { data: libraryTemplate } = useSWR(
     libraryId ? `/api/${libraryId}` : null,
     async (url) => {
@@ -87,14 +89,9 @@ export default function CreatePage() {
 
       const enabledItems = enableItems(libraryTemplate.schema.items);
 
-      // set data structure
-      setFields(libraryTemplate.schema.items);
-
-      setIsTemplate(true);
-    } else {
-      setIsTemplate(false);
       // Set data structure
       setFields(enabledItems);
+      setIsTemplate(true);
     }
   }, [libraryTemplate]);
 
@@ -331,20 +328,6 @@ export default function CreatePage() {
         }
       );
 
-      // Dummy
-      // const res = await flexpiAPI.post(
-      //   "/api/call/dummy",
-      //   {
-      //     schema: { ...JSON.parse(generatedSchema) },
-      //     libraryId: libraryId ?? null,
-      //   },
-      //   {
-      //     headers: {
-      //       "Flex-api-key": apiStats.apiKey,
-      //     },
-      //   }
-      // );
-
       setResponse(res.data);
     } catch (error) {
       console.log(error);
@@ -377,42 +360,12 @@ export default function CreatePage() {
     setApiName(e.target.value);
   };
 
-
   const [endpointPreview, setEndpointPreview] = useState("");
-  // On variable change
+
   const handleGenerateEndpointPreview = () => {
-    const endpoint = `http://localhost:3700/api/${libraryId}`;
-
-    // Add the params based on the variables
-    console.log({ variables });
-
-    //   variables example:
-    //   {
-    //     "variables": [
-    //         {
-    //             "key": "ens",
-    //             "name": "",
-    //             "description": "",
-    //             "value": "eeessssss"
-    //         }
-    //     ]
-    // }
-
-    // On the case above, the params will be ?ens=eeessssss
-
-    const params = variables
-      .map((variable) => `${variable.key}=${variable.value}`)
-      .join("&");
-
-
-    const finalEndpoint = `${endpoint}?${params}`;
-    setEndpointPreview(finalEndpoint);
-  };
-
-  useEffect(() => {
-    handleGenerateEndpointPreview();
-  }, [variables]);
-
+    // If params is ens, value is abc,
+    // Then it will be like http://localhost:5700/api/<api-id>/call?ens=abc
+  }
 
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
@@ -514,14 +467,10 @@ export default function CreatePage() {
                   Endpoint Preview
                 </h1>
               </CardHeader>
+
               <CardBody>
-                {endpointPreview ? 
-                  <>
-                    {endpointPreview}
-                  </>
-                  :
-                  ""
-                }
+                <div>
+                </div>
               </CardBody>
             </Card>
 
