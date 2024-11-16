@@ -34,6 +34,8 @@ import toast from "react-hot-toast";
 import { useUser } from "../providers/UserProvider";
 import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
+import RecursiveField from "../components/shared/RecursiveField";
+import { createNewField } from "../components/utils/createNewField";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -340,6 +342,41 @@ export default function CreatePage() {
     setApiName(e.target.value);
   };
 
+  const handleAddSubItems = (parentIndex, childIndex = null) => {
+    setFields((prevFields) => {
+      // Recursive function to handle adding a subItem at the correct level
+      const addSubItemRecursively = (fields, parentIdx, childIdx) => {
+        const updatedFields = [...fields];
+        console.log(childIdx)
+
+        if (childIdx === null) {
+          // Adding a subItem to the current level
+          updatedFields[parentIdx] = {
+            ...fields[parentIdx],
+            subItems: [...(fields[parentIdx].subItems || []), createNewField()],
+          };
+        } else {
+          // Recursively traverse to the next nested level
+          const currentField = fields[parentIdx];
+          const updatedSubItems = addSubItemRecursively(
+            currentField.subItems || [],
+            childIdx,
+            null
+          );
+
+          updatedFields[parentIdx] = {
+            ...currentField,
+            subItems: updatedSubItems,
+          };
+        }
+
+        return updatedFields;
+      };
+
+      return addSubItemRecursively(prevFields, parentIndex, childIndex);
+    });
+  };
+
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -466,7 +503,7 @@ export default function CreatePage() {
                 <div className="w-80 ml-4">Description</div>
               </div>
               <CardBody>
-                {fields && fields.length > 0 ? (
+                {/* {fields && fields.length > 0 ? (
                   <>
                     {fields.map((field, index) => (
                       <div key={index} className="space-y-0">
@@ -675,7 +712,37 @@ export default function CreatePage() {
                   <div className="text-center text-sm text-black opacity-60 py-4">
                     No fields added yet
                   </div>
-                )}
+                )} */}
+                <RecursiveField
+                  fields={fields}
+                  updateField={(index, key, value) =>
+                    setFields((prevFields) => [
+                      ...prevFields.slice(0, index),
+                      { ...prevFields[index], [key]: value },
+                      ...prevFields.slice(index + 1),
+                    ])
+                  }
+                  handleAddSubItem={handleAddSubItems}
+                  handleRemoveSubItem={(index, subIndex) =>
+                    setFields((prevFields) => {
+                      const newSubItems = [
+                        ...prevFields[index].subItems.slice(0, subIndex),
+                        ...prevFields[index].subItems.slice(subIndex + 1),
+                      ];
+                      return [
+                        ...prevFields.slice(0, index),
+                        { ...prevFields[index], subItems: newSubItems },
+                        ...prevFields.slice(index + 1),
+                      ];
+                    })
+                  }
+                  removeField={(index) =>
+                    setFields((prevFields) => [
+                      ...prevFields.slice(0, index),
+                      ...prevFields.slice(index + 1),
+                    ])
+                  }
+                />
               </CardBody>
               <CardFooter className="justify-end">
                 <Button
