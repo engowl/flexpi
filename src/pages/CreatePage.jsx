@@ -23,6 +23,8 @@ import { monokaiTheme } from "@uiw/react-json-view/monokai";
 import Marquee from "react-fast-marquee";
 import PluginList from "../components/shared/PluginList";
 import axios from "axios";
+import { flexpiAPI } from "../api/flexpi";
+import toast from "react-hot-toast";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -32,13 +34,20 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
 
+  // Tab
+  const [selectedTab, setSelectedTab] = useState("gennedSchema");
+
+
   const query = useMemo(() => queryParts.join(""), [queryParts]);
 
   const generateSchema = (currentFields, currentVariables, currentQuery) => {
-    const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, key) => {
-      const variable = currentVariables.find((v) => v.key === key);
-      return variable ? variable.value || key : key;
-    });
+    // const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, key) => {
+    //   const variable = currentVariables.find((v) => v.key === key);
+    //   return variable ? variable.value || key : key;
+    // });
+
+    // Return the query with {{variable}} still in place
+    const cleanQuery = currentQuery;
 
     const cleanFields = fields
       .filter((field) => field.isEnabled)
@@ -206,13 +215,30 @@ export default function CreatePage() {
 
   const handleRequestData = async () => {
     try {
-      console.log(generatedSchema)
-      const res = await axios.post("http://localhost:3700/ping", generatedSchema
-      )
+      setIsLoading(true);
 
-      alert(res.data)
+      // Set tab to response
+      setSelectedTab("response");
+
+      console.log(generatedSchema)
+      // Real
+      // const res = await flexpiAPI.post("/api/call", {
+      //   ...JSON.parse(generatedSchema),
+      // });
+
+      // Dummy
+      const res = await flexpiAPI.post("/api/call/dummy", {
+        ...JSON.parse(generatedSchema),
+      });
+
+      setResponse(res.data);
+
+      console.log(res.data)
     } catch (error) {
       console.log(error)
+      toast.error("Failed to fetch data");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -221,7 +247,7 @@ export default function CreatePage() {
       <div className="grid grid-cols-2 gap-4">
         <div className="w-full">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               Generate API Using Simple Prompts and Data Structure
             </h1>
           </div>
@@ -239,7 +265,7 @@ export default function CreatePage() {
               <Tooltip placement="bottom-start" content={<GuideTooltip />}>
                 <div className="relative">
                   <div
-                    className="absolute inset-0 px-3 py-2 z-20 pointer-events-none font-mono text-sm"
+                    className="absolute inset-0 px-3 py-2 z-20 pointer-events-none font-mono text-lg"
                     aria-hidden="true"
                   >
                     {highlightedQuery}
@@ -248,7 +274,7 @@ export default function CreatePage() {
                     value={query}
                     onChange={handleQueryChange}
                     classNames={{
-                      input: "bg-transparent font-mono text-sm",
+                      input: "bg-transparent font-mono text-lg",
                       inputWrapper: "bg-default-100 border border-[#87E64C]",
                     }}
                     style={{ color: "transparent", caretColor: "black" }}
@@ -258,63 +284,63 @@ export default function CreatePage() {
               </Tooltip>
             </div>
 
-          <Card className="px-4 py-3">
-            <CardHeader className="border-b">
-              <h1 className="font-medium text-xl">Variables</h1>
-            </CardHeader>
-            <div className="flex mt-3 text-sm font-medium gap-4 mx-4">
-              <div className="w-full">Key</div>
-              <div className="w-full">Variable Name</div>
-              <div className="w-full">Description (optional)</div>
-            </div>
-            <CardBody>
-              {variables.length > 0 ? (
-                <>
-                  {variables.map((variable, index) => (
-                    <div key={index} className="flex mb-4 flex-col">
-                      <div className="grid grid-cols-3 gap-4 items-center">
-                        <div className="text-sm px-3 py-2 w- text-center text-blue-500 bg-blue-200 rounded-xl">
-                          {`{{ ${variable.key} }}`}
-                        </div>
-                        <Input
-                          value={variable.value}
-                          onChange={(e) =>
-                            updateVariable(index, { value: e.target.value })
-                          }
-                          placeholder="Value"
-                          size="sm"
-                        />
-                        <div className="flex">
+            <Card className="px-4 py-3">
+              <CardHeader className="border-b">
+                <h1 className="font-medium text-xl">Variables</h1>
+              </CardHeader>
+              <div className="flex mt-3 text-sm font-medium gap-4 mx-4">
+                <div className="w-full">Key</div>
+                <div className="w-full">Value</div>
+                <div className="w-full">Description (optional)</div>
+              </div>
+              <CardBody>
+                {variables.length > 0 ? (
+                  <>
+                    {variables.map((variable, index) => (
+                      <div key={index} className="flex mb-4 flex-col">
+                        <div className="grid grid-cols-3 gap-4 items-center">
+                          <div className="text-sm px-3 py-2 w- text-center text-blue-500 bg-blue-200 rounded-xl">
+                            {`{{ ${variable.key} }}`}
+                          </div>
                           <Input
-                            value={variable.description}
+                            value={variable.value}
                             onChange={(e) =>
-                              updateVariable(index, {
-                                description: e.target.value,
-                              })
+                              updateVariable(index, { value: e.target.value })
                             }
-                            placeholder="Description (optional)"
+                            placeholder="Value"
                             size="sm"
                           />
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            size="sm"
-                            onClick={() => removeVariable(index)}
-                          >
-                            <Trash2 color="red" className="h-4 w-4" />
-                          </Button>
+                          <div className="flex">
+                            <Input
+                              value={variable.description}
+                              onChange={(e) =>
+                                updateVariable(index, {
+                                  description: e.target.value,
+                                })
+                              }
+                              placeholder="Description (optional)"
+                              size="sm"
+                            />
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              size="sm"
+                              onClick={() => removeVariable(index)}
+                            >
+                              <Trash2 color="red" className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div className="text-center text-sm text-black opacity-60 py-4">
-                  No variables added yet
-                </div>
-              )}
-            </CardBody>
-          </Card>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center text-sm text-black opacity-60 py-4">
+                    No variables added yet
+                  </div>
+                )}
+              </CardBody>
+            </Card>
 
             <Card className="px-4 py-3">
               <CardHeader className="justify-between border-b">
@@ -435,141 +461,147 @@ export default function CreatePage() {
                           </Button>
                         </div>
 
-                      {field.isExpanded && field.subItems && (
-                        <div className="ml-4">
-                          {field.subItems.map((subItem, subIndex) => (
-                            <div key={subIndex} className="w-full border-l">
-                              <div className="p-3">
-                                <div className="flex items-center gap-4">
-                                  <Switch
-                                    isSelected={subItem.isEnabled}
-                                    onValueChange={(checked) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "isEnabled",
-                                        checked
-                                      )
-                                    }
-                                    isDisabled={!field.isEnabled}
-                                  />
-                                  <Input
-                                    value={subItem.key}
-                                    onChange={(e) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "key",
-                                        e.target.value
-                                      )
-                                    }
-                                    isDisabled={!field.isEnabled}
-                                    // className="max-w-[200px]"
-                                    placeholder="Field name"
-                                    size="sm"
-                                    classNames={{
-                                      input: "h-8",
-                                      base: "w-32",
-                                    }}
-                                  />
-                                  <Select
-                                    selectedKeys={[subItem.dataType]}
-                                    defaultSelectedKeys={["string"]}
-                                    onChange={(e) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "dataType",
-                                        e.target.value
-                                      )
-                                    }
-                                    isDisabled={!field.isEnabled}
-                                    size="sm"
-                                    className="w-24"
-                                  >
-                                    <SelectItem key="string" value="string">
-                                      String
-                                    </SelectItem>
-                                    <SelectItem key="number" value="number">
-                                      Number
-                                    </SelectItem>
-                                    <SelectItem key="boolean" value="boolean">
-                                      Boolean
-                                    </SelectItem>
-                                  </Select>
-                                  <Checkbox
-                                    isSelected={subItem.isArray}
-                                    onValueChange={(checked) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "isArray",
-                                        checked
-                                      )
-                                    }
-                                    size="lg"
-                                    classNames={{
-                                      icon: "text-[#2F7004]",
-                                    }}
-                                    isDisabled={!field.isEnabled}
-                                  />
-                                  <Input
-                                    value={subItem.description}
-                                    onChange={(e) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "description",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="flex-1"
-                                    placeholder="Description"
-                                    size="sm"
-                                    isDisabled={!field.isEnabled}
-                                  />
-                                  <Button
-                                    isIconOnly
-                                    variant="light"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleRemoveSubItem(index, subIndex)
-                                    }
-                                  >
-                                    <Trash2 color="red" className="h-4 w-4" />
-                                  </Button>
+                        {field.isExpanded && field.subItems && (
+                          <div className="ml-4">
+                            {field.subItems.map((subItem, subIndex) => (
+                              <div key={subIndex} className="w-full border-l">
+                                <div className="p-3">
+                                  <div className="flex items-center gap-4">
+                                    <Switch
+                                      isSelected={subItem.isEnabled}
+                                      onValueChange={(checked) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "isEnabled",
+                                          checked
+                                        )
+                                      }
+                                      isDisabled={!field.isEnabled}
+                                    />
+                                    <Input
+                                      value={subItem.key}
+                                      onChange={(e) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "key",
+                                          e.target.value
+                                        )
+                                      }
+                                      isDisabled={!field.isEnabled}
+                                      // className="max-w-[200px]"
+                                      placeholder="Field name"
+                                      size="sm"
+                                      classNames={{
+                                        input: "h-8",
+                                        base: "w-32",
+                                      }}
+                                    />
+                                    <Select
+                                      selectedKeys={[subItem.dataType]}
+                                      defaultSelectedKeys={["string"]}
+                                      onChange={(e) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "dataType",
+                                          e.target.value
+                                        )
+                                      }
+                                      isDisabled={!field.isEnabled}
+                                      size="sm"
+                                      className="w-24"
+                                    >
+                                      <SelectItem key="string" value="string">
+                                        String
+                                      </SelectItem>
+                                      <SelectItem key="number" value="number">
+                                        Number
+                                      </SelectItem>
+                                      <SelectItem key="boolean" value="boolean">
+                                        Boolean
+                                      </SelectItem>
+                                    </Select>
+                                    <Checkbox
+                                      isSelected={subItem.isArray}
+                                      onValueChange={(checked) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "isArray",
+                                          checked
+                                        )
+                                      }
+                                      size="lg"
+                                      classNames={{
+                                        icon: "text-[#2F7004]",
+                                      }}
+                                      isDisabled={!field.isEnabled}
+                                    />
+                                    <Input
+                                      value={subItem.description}
+                                      onChange={(e) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "description",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="flex-1"
+                                      placeholder="Description"
+                                      size="sm"
+                                      isDisabled={!field.isEnabled}
+                                    />
+                                    <Button
+                                      isIconOnly
+                                      variant="light"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveSubItem(index, subIndex)
+                                      }
+                                    >
+                                      <Trash2 color="red" className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div className="text-center text-sm text-black opacity-60 py-4">
-                  No fields added yet
-                </div>
-              )}
-            </CardBody>
-            <CardFooter className="justify-end">
-              <Button
-                color="primary"
-                onClick={handleRequestData}
-                className="bg-[#B6FA89] text-[#1F4D00] font-medium"
-                isDisabled={!fields.length > 0}
-              >
-                <WandSparkles size={18} />
-                Request Data
-              </Button>
-            </CardFooter>
-          </Card>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center text-sm text-black opacity-60 py-4">
+                    No fields added yet
+                  </div>
+                )}
+              </CardBody>
+              <CardFooter className="justify-end">
+                <Button
+                  color="primary"
+                  onClick={handleRequestData}
+                  className="bg-[#B6FA89] text-[#1F4D00] font-medium"
+                  isDisabled={!fields.length > 0}
+                  isLoading={isLoading}
+                >
+                  <WandSparkles size={18} />
+                  Request Data
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
-      </div>
 
         <div className="flex w-full flex-col">
-          <Tabs aria-label="Options" variant="underlined">
+          <Tabs
+            aria-label="Options"
+            variant="underlined"
+            selectedKey={selectedTab}
+            onSelectionChange={setSelectedTab}
+          >
             <Tab key="gennedSchema" title="Generated Schema">
               <Card>
                 <CardBody>
@@ -588,7 +620,7 @@ export default function CreatePage() {
                     </div>
                   ) : response !== null ? (
                     <JsonView
-                      value={response}
+                      value={response.data}
                       style={monokaiTheme}
                       collapsed={false}
                       shortenTextAfterLength={1000}
@@ -602,6 +634,12 @@ export default function CreatePage() {
                       No response yet
                     </div>
                   )}
+
+                  {(response && !isLoading) &&
+                    <div className="opacity-60 text-sm mt-1 text-right">
+                      Finished in {(response.duration / 1000).toFixed(2)} seconds
+                    </div>
+                  }
                 </CardBody>
               </Card>
             </Tab>
