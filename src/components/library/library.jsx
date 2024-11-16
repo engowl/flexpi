@@ -17,6 +17,8 @@ export default function Library() {
   const { libraries } = useUser();
   const navigate = useNavigate();
 
+  console.log({ libraries });
+
   return (
     <div className="flex flex-col w-full gap-10">
       <div className="flex flex-row items-center justify-between">

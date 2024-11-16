@@ -277,7 +277,8 @@ export default function CreatePage() {
       const res = await flexpiAPI.post(
         "/api/call/dummy",
         {
-          ...JSON.parse(generatedSchema),
+          schema: { ...JSON.parse(generatedSchema) },
+          libraryId: libraryId ?? null,
         },
         {
           headers: {
