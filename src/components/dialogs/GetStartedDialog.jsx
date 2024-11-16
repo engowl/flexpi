@@ -5,11 +5,44 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { flexpiAPI } from "../../api/flexpi.js";
 import { useEmitEvent } from "../../hook/use-event.jsx";
+import useSound from "use-sound";
+import confetti from "canvas-confetti";
 
 export default function GetStartedDialog() {
   const [isOpen, setOpen] = useAtom(isGetStartedDialogOpenAtom);
   const [isLoading, setIsLoading] = useState(false);
+  const [play] = useSound("/assets/audio/air-horn.mp3");
   const emitEvent = useEmitEvent("create-api-key-dialog");
+
+  const handleClick = () => {
+    const end = Date.now() + 3 * 1000; // 3 seconds
+    const colors = ["#9c57ff", "#ff6699", "#ff7b44", "#ffdd88"];
+
+    const frame = () => {
+      if (Date.now() > end) return;
+
+      confetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 0, y: 0.5 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 1, y: 0.5 },
+        colors: colors,
+      });
+
+      requestAnimationFrame(frame);
+    };
+
+    frame();
+  };
 
   async function createApiKey() {
     setIsLoading(true);
@@ -24,6 +57,8 @@ export default function GetStartedDialog() {
         message: "Api key created",
       });
       setOpen(false);
+      play();
+      handleClick();
     } catch (error) {
       console.log("failed create api key: ", error);
       toast.error("Failed create api key");
