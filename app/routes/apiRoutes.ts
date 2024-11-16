@@ -137,8 +137,15 @@ export const apiRoutes: FastifyPluginCallback = (
   });
 
   // TODO: Save to library API
-  app.post("/save", async (request, reply) => {
+  app.post("/save",{
+    preHandler: [authMiddleware]
+  } ,async (request, reply) => {
     try {
+      const { schema, name } = request.body as { schema: Schema, name: string };
+
+      // Save it to the library
+      // await prismaClient.library.create()
+
       return {
         message: "Saved to library",
       };

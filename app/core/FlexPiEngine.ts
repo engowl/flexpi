@@ -193,17 +193,63 @@ class TrackedToolNode extends ToolNode {
       dataStore[this.currentCallId] = [];
     }
 
+    // Handle multiple tool calls in the result
+    if (result.messages && Array.isArray(result.messages)) {
+      for (const message of result.messages) {
+        if (message.content) {
+          try {
+            const callData = {
+              toolsName: message.name,
+              data: JSON.parse(message.content)
+            };
 
-    if (result.messages[0].content) {
-      const callData = {
-        toolsName: result.messages[0].name,
-        data: JSON.parse(result.messages[0].content),
+            console.log(`Pushing related data to ${this.currentCallId}`, callData);
+            dataStore[this.currentCallId].push(JSON.stringify(callData));
+          } catch (error) {
+            console.error(`Error processing tool result: ${error}`);
+            // If JSON parsing fails, store the raw content
+            const callData = {
+              toolsName: message.name,
+              data: message.content
+            };
+            dataStore[this.currentCallId].push(JSON.stringify(callData));
+          }
+        }
       }
+    }
 
-      dataStore[this.currentCallId].push(result.messages[0].content);
+    // Handle single tool call result
+    else if (result.messages?.[0]?.content) {
+      try {
+        const callData = {
+          toolsName: result.messages[0].name,
+          data: JSON.parse(result.messages[0].content)
+        };
+
+        console.log(`Pushing related data to ${this.currentCallId}`, callData);
+        dataStore[this.currentCallId].push(JSON.stringify(callData));
+      } catch (error) {
+        console.error(`Error processing tool result: ${error}`);
+        // If JSON parsing fails, store the raw content
+        const callData = {
+          toolsName: result.messages[0].name,
+          data: result.messages[0].content
+        };
+        dataStore[this.currentCallId].push(JSON.stringify(callData));
+      }
     }
 
     return result;
+  }
+
+  // Helper method to get all stored data for a specific callId
+  public getStoredData(callId: string) {
+    return dataStore[callId] || [];
+  }
+
+  // Helper method to clear stored data for a specific callId
+  public clearStoredData(callId: string) {
+    delete dataStore[callId];
   }
 }
 
@@ -211,10 +257,12 @@ export async function run(prompt: string, callId: string): Promise<any> {
   // Clear previous data for this callId
   dataStore[callId] = [];
 
+  const toolNode = new TrackedToolNode(pluginRegistry.getTools(), callId);
+
   const workflow = new StateGraph(StateAnnotation)
     .addNode("agent", callModel)
     // .addNode("tools", toolNode)
-    .addNode("tools", new TrackedToolNode(pluginRegistry.getTools(), callId))
+    .addNode("tools", toolNode)
     .addEdge("__start__", "agent")
     .addConditionalEdges("agent", shouldContinue)
     .addEdge("tools", "agent");
@@ -267,6 +315,8 @@ export async function run(prompt: string, callId: string): Promise<any> {
 `
 
   console.log('_prompt', _prompt);
+
+  console.log("RELATED DATA", toolNode.getStoredData(callId));
 
   if (process.env.AI_MODE !== "llama") {
     const jsonFormatterResponse = await jsonFormatterModel.invoke(
