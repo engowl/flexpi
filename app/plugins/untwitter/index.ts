@@ -13,82 +13,81 @@ import { z } from "zod";
 export const metadata: PluginMetadata = {
   name: "Twitter Tools",
   description:
-    "A suite of tools for querying Twitter data. These tools provide detailed insights into tweets, user profiles, and social media interactions, making them essential for social media analysts, marketers, and developers seeking real-time data from Twitter-like platforms.",
+    "A suite of tools for accessing and analyzing Twitter data, including tweets, user profiles, and user posts. These tools are ideal for social media analysts, marketers, and developers seeking detailed Twitter insights.",
   tools: [
     {
       id: "search_top_tweets",
       name: "Search Top Tweets",
-      description: `Search for top tweets based on a query. Retrieves tweets matching the query, sorted by relevance or popularity.
+      description: `Search for tweets based on relevance or popularity using a specific query.
       
       Key Features:
-      - Filters tweets based on a required Unix timestamp.
-      - Supports cursor-based pagination for retrieving additional tweets.
-      - Processes raw data into a structured format for easy consumption.
-      
+      - Retrieves tweets with details including text, creation time, engagement metrics (likes, retweets, replies, views), and user data.
+      - Filters tweets to include only those posted after a specific Unix timestamp.
+      - Supports pagination for extended queries.
+
       Use Cases:
-      - Fetch trending tweets for a given keyword or hashtag.
-      - Retrieve relevant tweets for analysis or content gathering.
-      - Ensure only tweets posted after the specified timestamp are included.`,
+      - Fetch tweets for trending topics or hashtags.
+      - Analyze popular tweets related to a keyword.
+      - Retrieve tweets posted within a specific timeframe.`,
     },
     {
       id: "search_latest_tweets",
       name: "Search Latest Tweets",
-      description: `Search for the latest tweets based on a query. Retrieves tweets sorted by recency and relevance, filtering those posted after a specific Unix timestamp.
-      
+      description: `Search for the latest tweets based on a query. Retrieves tweets in chronological order.
+
       Key Features:
-      - Supports cursor-based pagination for fetching additional tweets.
-      - Filters tweets to include only those posted after a required Unix timestamp.
-      - Processes raw response data into a structured format for easy usage.
-      
+      - Provides tweet details such as text, creation time, and engagement metrics.
+      - Filters tweets based on a specific Unix timestamp.
+      - Supports pagination for extended queries.
+
       Use Cases:
-      - Retrieve the latest tweets for a given keyword, hashtag, or topic.
-      - Ensure that only tweets after a specified time are included.
-      - Fetch paginated results for detailed analysis or display.`,
+      - Retrieve the most recent tweets for real-time monitoring.
+      - Filter tweets to include only those posted after a specific time.
+      - Fetch paginated results for deeper analysis.`,
     },
     {
       id: "get_user_posts",
       name: "Get User Posts",
-      description: `Retrieve tweets posted by a specific user based on their user ID. Supports cursor-based pagination and filtering tweets by a Unix timestamp.
-      
+      description: `Retrieve tweets from a specific user by their user ID.
+
       Key Features:
-      - Fetches tweets for a user using their user ID.
-      - Supports optional cursor for paginated results.
-      - Allows filtering tweets based on a specific Unix timestamp.
-      - Processes raw response data into a structured format for easy usage.
-      
+      - Provides tweet details, including text, engagement metrics, and creation time.
+      - Supports pagination for fetching additional tweets.
+      - Allows filtering tweets by a specific Unix timestamp.
+
       Use Cases:
-      - Analyze tweets posted by a user.
-      - Fetch user-specific tweet data for display or content analysis.
-      - Use timestamp filtering to retrieve recent tweets only.`,
+      - Analyze tweets posted by a specific user.
+      - Retrieve user-specific tweet data for content or trend analysis.
+      - Filter tweets to focus on recent or relevant posts.`,
     },
     {
       id: "search_users",
       name: "Search Users",
-      description: `Search for users based on a query. Retrieves user profiles that match the query and supports pagination.
-      
+      description: `Search for user profiles based on a query.
+
       Key Features:
-      - Allows querying for user profiles using a keyword or name.
-      - Supports cursor-based pagination for fetching additional users.
-      - Processes raw data into a structured format for easy usage.
-      
+      - Retrieves user details such as name, username, profile description, followers, and verification status.
+      - Includes user metadata like account creation date and profile images.
+      - Supports pagination for extended searches.
+
       Use Cases:
-      - Retrieve user profiles matching a specific keyword or name.
-      - Explore users for content analysis or social media interactions.
-      - Paginate through user results for a comprehensive list.`,
+      - Discover users related to a keyword or topic.
+      - Analyze user profiles for targeted social media campaigns.
+      - Explore a list of users matching a specific query.`,
     },
     {
       id: "get_user",
       name: "Get User Details",
       description: `Fetch detailed information about a Twitter user by their user ID.
-      
+
       Key Features:
-      - Retrieves a single user's profile details using their unique user ID.
-      - Processes raw user data into a structured format for easy consumption.
-      
+      - Provides user details, including name, username, description, profile images, and verification status.
+      - Includes metadata such as followers count, statuses count, and account creation date.
+
       Use Cases:
-      - Retrieve user details for analysis or display.
-      - Fetch user-specific data such as name, username, profile picture, followers, and more.
-      - Use the user ID to get precise and reliable user information.`,
+      - Retrieve detailed user information for analysis.
+      - Validate user authenticity or profile attributes.
+      - Fetch user-specific metrics for targeted interactions.`,
     },
   ],
 };
