@@ -222,14 +222,14 @@ export default function CreatePage() {
 
       console.log(generatedSchema)
       // Real
-      // const res = await flexpiAPI.post("/api/call", {
-      //   ...JSON.parse(generatedSchema),
-      // });
-
-      // Dummy
-      const res = await flexpiAPI.post("/api/call/dummy", {
+      const res = await flexpiAPI.post("/api/call", {
         ...JSON.parse(generatedSchema),
       });
+
+      // Dummy
+      // const res = await flexpiAPI.post("/api/call/dummy", {
+      //   ...JSON.parse(generatedSchema),
+      // });
 
       setResponse(res.data);
 
@@ -617,9 +617,14 @@ export default function CreatePage() {
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
                       {import.meta.env.VITE_MEME_LOADING === "true" ?
-                        <video autoPlay loop className="w-1/2 rounded-xl">
-                          <source src="/assets/video/meme_loading.mp4" type="video/mp4" />
-                        </video>
+                        <div className="flex flex-col items-center">
+                          <video autoPlay loop className="w-1/2 rounded-xl">
+                            <source src="/assets/video/meme_loading.mp4" type="video/mp4" />
+                          </video>
+                          <div className="text-center font-semibold mt-4 animate-pulse text-2xl">
+                            Our AI working in the background be like...
+                          </div>
+                        </div>
                         :
                         <Spinner size="lg" color="primary" />
                       }
