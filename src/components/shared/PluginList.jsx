@@ -96,7 +96,7 @@ const PluginList = () => {
 
       <Marquee
         autoFill
-        className="grid grid-cols-4 rounded-xl"
+        className="grid grid-cols-4 rounded-xl bg-white p-2"
         pauseOnHover
         speed={90}
       >
