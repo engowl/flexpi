@@ -17,6 +17,10 @@ import {
   getERC721InfoTool,
   metadata as contractCallerMetadata
 } from './contract-caller'
+import {
+  uniswapV3SubgraphTool,
+  metadata as theGraphMetadata
+} from './the-graph'
 
 class PluginRegistry {
   private tools = [
@@ -29,6 +33,9 @@ class PluginRegistry {
     getPriceFeedsTool,
 
     /* --------------------------------- Twitter -------------------------------- */
+
+    /* ------------------------------- The Graph ------------------------------- */
+    uniswapV3SubgraphTool,
 
     /* ----------------------------- Contract Caller ---------------------------- */
     getERC20InfoTool,
@@ -43,9 +50,9 @@ class PluginRegistry {
     /* ------------------------------- Dexscreener ------------------------------ */
     dexscreenerPluginMetadata,
     pythPriceFeedsMetadata,
+    theGraphMetadata,
     contractCallerMetadata,
   ]
-
 
   getTools() {
     return this.tools;
