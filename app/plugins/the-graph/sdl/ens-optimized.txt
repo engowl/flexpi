@@ -1,0 +1,185 @@
+# Base directives and scalars
+directive @entity on OBJECT 
+directive @derivedFrom(field: String!) on FIELD_DEFINITION
+directive @subgraphId(id: String!) on OBJECT
+
+scalar BigInt
+scalar BigDecimal
+scalar Bytes
+scalar Timestamp
+scalar Int8
+
+# Common filter patterns
+input CommonFilter {
+  _eq: Any
+  _not: Any
+  _gt: Any
+  _lt: Any
+  _gte: Any
+  _lte: Any
+  _in: [Any!]
+  _not_in: [Any!]
+}
+
+input StringFilter {
+  # Inherits CommonFilter +
+  _contains: String
+  _contains_nocase: String
+  _starts_with: String
+  _starts_with_nocase: String
+  _ends_with: String
+  _ends_with_nocase: String
+}
+
+input BlockChangedFilter {
+  number_gte: Int!
+}
+
+input Block_height {
+  hash: Bytes
+  number: Int
+  number_gte: Int
+}
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+# Core Domain Entities
+type Domain @entity {
+  id: ID!                         # namehash
+  name: String                    # Human readable name
+  labelName: String              # Human readable label name (imported from CSV)
+  labelhash: Bytes              
+  parent: Domain                 # Parent domain
+  subdomains: [Domain!]!         # Child domains
+  subdomainCount: Int!           
+  resolvedAddress: Account       # Current resolved address
+  resolver: Resolver             # Current resolver
+  ttl: BigInt                    # TTL
+  isMigrated: Boolean!
+  createdAt: BigInt!
+  owner: Account!                # Current owner account
+  registrant: Account           # Current registrant (for .eth names)
+  wrappedOwner: Account        # Current wrapped token owner
+  expiryDate: BigInt           # When this name will expire
+  registration: Registration    # Associated registration details
+  wrappedDomain: WrappedDomain # If this name is wrapped in the name wrapper
+  events: [DomainEvent!]!      # All events for this domain
+}
+
+type Account @entity {
+  id: ID!                      # Ethereum address
+  domains: [Domain!]!         # All domains owned by this account  
+  wrappedDomains: [WrappedDomain!]
+  registrations: [Registration!]
+}
+
+type Registration @entity {
+  id: ID!
+  domain: Domain!
+  registrationDate: BigInt!
+  expiryDate: BigInt!
+  cost: BigInt
+  registrant: Account!
+  labelName: String
+  events: [RegistrationEvent!]!
+}
+
+type Resolver @entity {
+  id: ID!
+  domain: Domain
+  address: Bytes!
+  addr: Account
+  contentHash: Bytes
+  texts: [String!]
+  coinTypes: [BigInt!]
+  events: [ResolverEvent!]!
+}
+
+# Event Interfaces & Core Events
+interface DomainEvent {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+}
+
+interface RegistrationEvent {
+  id: ID!
+  registration: Registration!
+  blockNumber: Int!
+  transactionID: Bytes!
+}
+
+interface ResolverEvent {
+  id: ID!
+  resolver: Resolver!
+  blockNumber: Int!
+  transactionID: Bytes!
+}
+
+# Wrapped Domain Types
+type WrappedDomain @entity {
+  id: ID!
+  domain: Domain!
+  expiryDate: BigInt!
+  fuses: Int!
+  owner: Account!
+  name: String
+}
+
+# Query Root
+type Query {
+  domains(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Domain_filter,
+    orderBy: Domain_orderBy,
+    orderDirection: OrderDirection
+  ): [Domain!]!
+
+  accounts(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Account_filter,
+    orderBy: Account_orderBy,
+    orderDirection: OrderDirection
+  ): [Account!]!
+
+  registrations(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Registration_filter,
+    orderBy: Registration_orderBy,
+    orderDirection: OrderDirection
+  ): [Registration!]!
+
+  resolvers(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Resolver_filter,
+    orderBy: Resolver_orderBy,
+    orderDirection: OrderDirection
+  ): [Resolver!]!
+
+  wrappedDomains(
+    first: Int = 100,
+    skip: Int = 0,
+    where: WrappedDomain_filter,
+    orderBy: WrappedDomain_orderBy,
+    orderDirection: OrderDirection
+  ): [WrappedDomain!]!
+
+  events(
+    first: Int = 100,
+    skip: Int = 0,
+    where: DomainEvent_filter,
+    orderBy: DomainEvent_orderBy,
+    orderDirection: OrderDirection
+  ): [DomainEvent!]!
+}
+
+# Note: All entities support the common filter patterns defined above
+# Filter types (Domain_filter, Account_filter etc) are generated using those patterns

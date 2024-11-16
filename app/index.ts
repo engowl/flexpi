@@ -8,7 +8,7 @@ import { run } from "./core/FlexPiEngine";
 import { apiRoutes } from "./routes/apiRoutes";
 import generateApiKey from "./utils/apiUtils";
 import { userRoutes } from "./routes/userRoutes";
-import { uniswapV3SubgraphTool } from "./plugins/the-graph";
+import { ensSubgraphTool, uniswapV3SubgraphTool } from "./plugins/the-graph";
 
 const fastify = Fastify();
 
@@ -44,6 +44,10 @@ console.log(generateApiKey());
 // uniswapV3SubgraphTool.func({
 //   query: 'Latest 30 big sell on uniswap v3 pools'
 // })
+
+ensSubgraphTool.func({
+  query: 'ENS info of kelpin.eth',
+})
 
 fastify.listen(
   {

@@ -1,0 +1,351 @@
+# Base scalar and directive definitions
+scalar BigInt
+scalar BigDecimal
+scalar Bytes
+scalar Timestamp
+
+directive @entity on OBJECT
+directive @derivedFrom(field: String!) on FIELD_DEFINITION
+directive @subgraphId(id: String!) on OBJECT
+
+# Filter and Pagination Patterns
+# These patterns apply to all filterable fields based on their type
+input CommonFilter {
+  # Universal comparison operators
+  _eq: Any
+  _not: Any
+  _gt: Any
+  _lt: Any
+  _gte: Any
+  _lte: Any
+  _in: [Any!]
+  _not_in: [Any!]
+}
+
+input StringFilter {
+  # Inherits CommonFilter patterns plus string-specific operators
+  _contains: String
+  _contains_nocase: String
+  _starts_with: String
+  _starts_with_nocase: String
+  _ends_with: String
+  _ends_with_nocase: String
+}
+
+input BlockFilter {
+  number_gte: Int!
+}
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+# Core Entity Types
+type Factory @entity {
+  id: ID!
+  poolCount: BigInt!
+  txCount: BigInt!
+  totalVolumeUSD: BigDecimal!
+  totalFeesUSD: BigDecimal!
+  totalValueLockedUSD: BigDecimal!
+  owner: ID!
+}
+
+type Bundle @entity {
+  id: ID!
+  ethPriceUSD: BigDecimal!
+}
+
+type Token @entity {
+  id: ID!
+  symbol: String!
+  name: String!
+  decimals: BigInt!
+  totalSupply: BigInt!
+  volume: BigDecimal!
+  volumeUSD: BigDecimal!
+  feesUSD: BigDecimal!
+  txCount: BigInt!
+  poolCount: BigInt!
+  totalValueLocked: BigDecimal!
+  totalValueLockedUSD: BigDecimal!
+  derivedETH: BigDecimal!
+  whitelistPools: [Pool!]!
+  tokenDayData: [TokenDayData!]!
+}
+
+type Pool @entity {
+  id: ID!
+  createdAtTimestamp: BigInt!
+  createdAtBlockNumber: BigInt!
+  token0: Token!
+  token1: Token!
+  feeTier: BigInt!
+  liquidity: BigInt!
+  sqrtPrice: BigInt!
+  token0Price: BigDecimal!
+  token1Price: BigDecimal!
+  tick: BigInt
+  observationIndex: BigInt!
+  volumeToken0: BigDecimal!
+  volumeToken1: BigDecimal!
+  volumeUSD: BigDecimal!
+  feesUSD: BigDecimal!
+  txCount: BigInt!
+  totalValueLockedToken0: BigDecimal!
+  totalValueLockedToken1: BigDecimal!
+  totalValueLockedUSD: BigDecimal!
+  liquidityProviderCount: BigInt!
+  poolHourData: [PoolHourData!]!
+  poolDayData: [PoolDayData!]!
+  mints: [Mint!]!
+  burns: [Burn!]!
+  swaps: [Swap!]!
+  collects: [Collect!]!
+  ticks: [Tick!]!
+}
+
+# Event Types
+type Swap @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pool: Pool!
+  token0: Token!
+  token1: Token!
+  sender: Bytes!
+  recipient: Bytes!
+  origin: Bytes!
+  amount0: BigDecimal!
+  amount1: BigDecimal!
+  amountUSD: BigDecimal!
+  sqrtPriceX96: BigInt!
+  tick: BigInt!
+  logIndex: BigInt
+}
+
+type Mint @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pool: Pool!
+  token0: Token!
+  token1: Token!
+  owner: Bytes!
+  sender: Bytes
+  origin: Bytes!
+  amount: BigInt!
+  amount0: BigDecimal!
+  amount1: BigDecimal!
+  amountUSD: BigDecimal
+  tickLower: BigInt!
+  tickUpper: BigInt!
+  logIndex: BigInt
+}
+
+type Burn {
+  id: ID!
+  transaction: Transaction!
+  pool: Pool!
+  token0: Token!
+  token1: Token!
+  timestamp: BigInt!
+  owner: Bytes
+  origin: Bytes!
+  amount: BigInt!
+  amount0: BigDecimal!
+  amount1: BigDecimal!
+  amountUSD: BigDecimal
+  tickLower: BigInt!
+  tickUpper: BigInt!
+  logIndex: BigInt
+}
+
+type Collect @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pool: Pool!
+  owner: Bytes
+  amount0: BigDecimal!
+  amount1: BigDecimal!
+  amountUSD: BigDecimal
+  tickLower: BigInt!
+  tickUpper: BigInt!
+  logIndex: BigInt
+}
+
+# Time-based Aggregation Types
+type PoolDayData @entity {
+  id: ID!
+  date: Int!
+  pool: Pool!
+  liquidity: BigInt!
+  sqrtPrice: BigInt!
+  token0Price: BigDecimal!
+  token1Price: BigDecimal!
+  tick: BigInt
+  tvlUSD: BigDecimal!
+  volumeToken0: BigDecimal!
+  volumeToken1: BigDecimal!
+  volumeUSD: BigDecimal!
+  feesUSD: BigDecimal!
+  txCount: BigInt!
+}
+
+type PoolHourData @entity {
+  id: ID!
+  periodStartUnix: Int!
+  pool: Pool!
+  liquidity: BigInt!
+  sqrtPrice: BigInt!
+  token0Price: BigDecimal!
+  token1Price: BigDecimal!
+  tick: BigInt
+  tvlUSD: BigDecimal!
+  volumeToken0: BigDecimal!
+  volumeToken1: BigDecimal!
+  volumeUSD: BigDecimal!
+  feesUSD: BigDecimal!
+  txCount: BigInt!
+}
+
+type TokenDayData @entity {
+  id: ID!
+  date: Int!
+  token: Token!
+  volume: BigDecimal!
+  volumeUSD: BigDecimal!
+  totalValueLocked: BigDecimal!
+  totalValueLockedUSD: BigDecimal!
+  priceUSD: BigDecimal!
+  feesUSD: BigDecimal!
+}
+
+# Support Types
+type Transaction @entity {
+  id: ID!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  gasUsed: BigInt!
+  gasPrice: BigInt!
+  mints: [Mint]!
+  burns: [Burn]!
+  swaps: [Swap]!
+  collects: [Collect]!
+}
+
+type Tick @entity {
+  id: ID!
+  poolAddress: String!
+  tickIdx: BigInt!
+  pool: Pool!
+  liquidityGross: BigInt!
+  liquidityNet: BigInt!
+  price0: BigDecimal!
+  price1: BigDecimal!
+  volumeToken0: BigDecimal!
+  volumeToken1: BigDecimal!
+  volumeUSD: BigDecimal!
+  feesUSD: BigDecimal!
+  createdAtTimestamp: BigInt!
+  liquidityProviderCount: BigInt!
+}
+
+# Query Root
+type Query {
+  factory(id: ID!): Factory
+  factories(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Factory_filter
+    orderBy: Factory_orderBy
+    orderDirection: OrderDirection
+  ): [Factory!]!
+  
+  bundle(id: ID!): Bundle
+  bundles(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Bundle_filter
+    orderBy: Bundle_orderBy
+    orderDirection: OrderDirection
+  ): [Bundle!]!
+  
+  token(id: ID!): Token
+  tokens(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Token_filter
+    orderBy: Token_orderBy
+    orderDirection: OrderDirection
+  ): [Token!]!
+  
+  pool(id: ID!): Pool
+  pools(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Pool_filter
+    orderBy: Pool_orderBy
+    orderDirection: OrderDirection
+  ): [Pool!]!
+  
+  swap(id: ID!): Swap
+  swaps(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Swap_filter
+    orderBy: Swap_orderBy
+    orderDirection: OrderDirection
+  ): [Swap!]!
+  
+  transaction(id: ID!): Transaction
+  transactions(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Transaction_filter
+    orderBy: Transaction_orderBy
+    orderDirection: OrderDirection
+  ): [Transaction!]!
+  
+  mint(id: ID!): Mint
+  mints(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Mint_filter
+    orderBy: Mint_orderBy
+    orderDirection: OrderDirection
+  ): [Mint!]!
+  
+  burn(id: ID!): Burn
+  burns(
+    first: Int = 100,
+    skip: Int = 0,
+    where: Burn_filter
+    orderBy: Burn_orderBy
+    orderDirection: OrderDirection
+  ): [Burn!]!
+  
+  poolDayData(id: ID!): PoolDayData
+  poolDayDatas(
+    first: Int = 100,
+    skip: Int = 0,
+    where: PoolDayData_filter
+    orderBy: PoolDayData_orderBy
+    orderDirection: OrderDirection
+  ): [PoolDayData!]!
+  
+  poolHourData(id: ID!): PoolHourData
+  poolHourDatas(
+    first: Int = 100,
+    skip: Int = 0,
+    where: PoolHourData_filter
+    orderBy: PoolHourData_orderBy
+    orderDirection: OrderDirection
+  ): [PoolHourData!]!
+}
+
+# Note: All entities support filtering using CommonFilter and StringFilter patterns
+# Example: Token_filter would contain all fields of Token with applicable filter patterns
+# Example: Pool_orderBy would be an enum of all Pool fields

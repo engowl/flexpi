@@ -19,6 +19,7 @@ import {
 } from "./contract-caller";
 import {
   uniswapV3SubgraphTool,
+  ensSubgraphTool,
   metadata as theGraphMetadata,
 } from "./the-graph";
 import {
@@ -56,6 +57,7 @@ class PluginRegistry {
 
     /* ------------------------------- The Graph ------------------------------- */
     uniswapV3SubgraphTool,
+    ensSubgraphTool,
 
     /* ------------------------------- Blockscout ------------------------------- */
     getBlocks,
