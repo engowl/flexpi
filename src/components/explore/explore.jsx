@@ -44,18 +44,22 @@ export default function Explore() {
 }
 
 const Card = ({ lib }) => {
+  console.log({ lib });
   return (
     <Link
       to={`/create?id=${lib.id}`}
       className="col-span-12 md:col-span-3 bg-white rounded-lg p-6 flex flex-col gap-2"
     >
-      <div className="relative size-14 rounded-full overflow-hidden">
-        <Nounsies address={lib.user.wallet.address} />
+      <h1 className="font-medium  text-black mt-2">{lib.name}</h1>
+      <h1 className="font-medium  text-black/50 text-sm mt-2">
+        {lib.description}
+      </h1>
+      <div className="flex items-center gap-2 mt-auto">
+        <div className="relative size-6 rounded-full overflow-hidden">
+          <Nounsies address={lib.user.wallet.address} />
+        </div>
+        <p className="text-sm">{shortenAddress(lib.user.wallet.address)}</p>
       </div>
-      <h1 className="font-medium  text-black mt-2">{lib.description}</h1>
-      <p className="text-sm mt-auto">
-        {shortenAddress(lib.user.wallet.address)}
-      </p>
     </Link>
   );
 };
