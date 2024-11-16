@@ -79,7 +79,7 @@ model ApiCall {
 model Library {
   id String @id @default(cuid())
 
-  name        String @unique
+  name        String 
   description String
 
   userId String
