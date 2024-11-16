@@ -62,18 +62,20 @@ const UserProfileButton = () => {
   return (
     <div className={"relative flex flex-col"}>
       {primaryWallet && (
-        <div className="flex flex-row items-center justify-center gap-4">
-          <div className="px-5 py-3 bg-[#F2F2F2] text-sm rounded-lg">
+        <div className="flex flex-row items-center justify-center gap-2">
+          <div className="px-5 h-11 bg-[#F2F2F2] text-sm rounded-lg flex items-center justify-center">
             {userData.apiCredits} Credits
           </div>
-          <h1 className="text-sm hidden md:block">
-            {shortenAddress(primaryWallet?.address)}
-          </h1>
           <button
             onClick={() => setShowDynamicUserProfile(true)}
-            className="size-12 rounded-full overflow-hidden relative border-[4px] border-primary"
+            className="px-5 h-11 flex flex-row gap-2 items-center justify-center bg-[#F2F2F2] rounded-lg"
           >
-            <Nounsies address={primaryWallet?.address} />
+            <h1 className="text-sm hidden md:block">
+              {shortenAddress(primaryWallet?.address)}
+            </h1>
+            <div className="size-8 rounded-full overflow-hidden relative">
+              <Nounsies address={primaryWallet?.address} />
+            </div>
           </button>
         </div>
       )}
