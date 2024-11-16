@@ -25,6 +25,7 @@ import PluginList from "../components/shared/PluginList";
 import axios from "axios";
 import { flexpiAPI } from "../api/flexpi";
 import toast from "react-hot-toast";
+import { useUser } from "../providers/UserProvider";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -34,9 +35,10 @@ export default function CreatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
 
+  const { apiStats } = useUser();
+
   // Tab
   const [selectedTab, setSelectedTab] = useState("gennedSchema");
-
 
   const query = useMemo(() => queryParts.join(""), [queryParts]);
 
@@ -220,27 +222,35 @@ export default function CreatePage() {
       // Set tab to response
       setSelectedTab("response");
 
-      console.log(generatedSchema)
+      console.log(generatedSchema);
       // Real
       // const res = await flexpiAPI.post("/api/call", {
       //   ...JSON.parse(generatedSchema),
       // });
 
       // Dummy
-      const res = await flexpiAPI.post("/api/call/dummy", {
-        ...JSON.parse(generatedSchema),
-      });
+      const res = await flexpiAPI.post(
+        "/api/call/dummy",
+        {
+          ...JSON.parse(generatedSchema),
+        },
+        {
+          headers: {
+            "Flex-api-key": apiStats.apiKey,
+          },
+        }
+      );
 
       setResponse(res.data);
 
-      console.log(res.data)
+      console.log(res.data);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error("Failed to fetch data");
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
@@ -635,11 +645,12 @@ export default function CreatePage() {
                     </div>
                   )}
 
-                  {(response && !isLoading) &&
+                  {response && !isLoading && (
                     <div className="opacity-60 text-sm mt-1 text-right">
-                      Finished in {(response.duration / 1000).toFixed(2)} seconds
+                      Finished in {(response.duration / 1000).toFixed(2)}{" "}
+                      seconds
                     </div>
-                  }
+                  )}
                 </CardBody>
               </Card>
             </Tab>
