@@ -432,12 +432,36 @@ export const apiRoutes: FastifyPluginCallback = (
             id: userId,
           },
           include: {
-            libraries: true,
+            libraries: {
+              include: {
+                apiCalls: {
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                },
+              },
+            },
           },
         });
 
+        const libraries = user?.libraries.map((library) => {
+          const endpointURL = `http://localhost:3700/api/${library.id}`;
+          const lastCallDate =
+            library.apiCalls.length > 0 ? library.apiCalls[0].createdAt : null;
+          const usageCount = library.apiCalls.length;
+
+          return {
+            ...library,
+            endpointURL,
+            usageCount,
+            lastCallDate,
+          };
+        });
+
+        console.log({ libraries });
+
         return {
-          data: user?.libraries ?? null,
+          data: libraries ?? null,
           message: "Success getting user library",
         };
       } catch (e) {
