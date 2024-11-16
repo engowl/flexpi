@@ -23,18 +23,18 @@ export const apiRoutes: FastifyPluginCallback = (
 ) => {
   // TODO: Call the API saved to library
   app.get("/:libraryId", async (request, reply) => {
-    const libraryId = request.params as unknown as string
+    const libraryId = request.params as unknown as string;
     try {
       const lib = await prismaClient.library.findFirst({
         where: {
-          id: libraryId
-        }
-      })
+          id: libraryId,
+        },
+      });
 
-      if(!lib) {
+      if (!lib) {
         return reply.code(40).send({
-          message: "No library found"
-        })
+          message: "No library found",
+        });
       }
 
       return {
@@ -151,18 +151,18 @@ export const apiRoutes: FastifyPluginCallback = (
   );
 
   // TODO: Call history API
-  app.get("/history", async (request, reply) => {
-    try {
-      return {
-        message: "Call history",
-      };
-    } catch (error) {
-      console.error(error);
-      return reply.code(500).send({
-        error: "Internal Server Error",
-      });
-    }
-  });
+  // app.get("/history", async (request, reply) => {
+  //   try {
+  //     return {
+  //       message: "Call history",
+  //     };
+  //   } catch (error) {
+  //     console.error(error);
+  //     return reply.code(500).send({
+  //       error: "Internal Server Error",
+  //     });
+  //   }
+  // });
 
   interface SaveSchemaBody {
     name: string;
@@ -353,6 +353,49 @@ export const apiRoutes: FastifyPluginCallback = (
             hasMore: skip + libraries.length < total,
           },
           message: "Libraries retrieved successfully",
+        };
+      } catch (error) {
+        console.error("Error fetching libraries:", error);
+        return reply.status(500).send({
+          data: null,
+          message: "An error occurred while fetching libraries",
+          error: process.env.NODE_ENV === "development" ? error : undefined,
+        });
+      }
+    }
+  );
+
+  app.get(
+    "/history",
+    {
+      preHandler: [authMiddleware],
+    },
+    async (
+      request: FastifyRequest<{
+        Querystring: LibraryQuerystring;
+      }>,
+      reply: FastifyReply
+    ) => {
+      const { userId } = (request as any).user;
+
+      try {
+        const user = await prismaClient.user.findFirst({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          return reply.status(400).send({
+            message: "User not found",
+          });
+        }
+
+        const history = await prismaClient.apiCall.findMany({
+          where: { userId: user.id },
+        });
+
+        return {
+          data: history,
+          message: "History retrieved successfully",
         };
       } catch (error) {
         console.error("Error fetching libraries:", error);

@@ -3,8 +3,8 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 
 // Configure the rate limiter
 const rateLimiter = new RateLimiterMemory({
-  points: 10, // Number of requests allowed
-  duration: 60, // Per 60 seconds
+  points: 10000000, // Number of requests allowed
+  duration: 1, // Per 60 seconds
 });
 
 // Middleware function
