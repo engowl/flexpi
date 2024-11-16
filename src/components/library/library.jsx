@@ -11,15 +11,21 @@ import {
 import { BiSolidCopy } from "react-icons/bi";
 import toast from "react-hot-toast";
 import { IoClose } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 
 export default function Library() {
   const { libraries } = useUser();
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col w-full gap-10">
       <div className="flex flex-row items-center justify-between">
         <h1 className="text-3xl font-bold text-black">Your API Library</h1>
-        <Button color="primary" className="text-black rounded-md">
+        <Button
+          onClick={() => navigate("/create")}
+          color="primary"
+          className="text-black rounded-md"
+        >
           Create API
         </Button>
       </div>

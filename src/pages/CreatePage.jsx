@@ -21,6 +21,7 @@ import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
 import { monokaiTheme } from "@uiw/react-json-view/monokai";
 import Marquee from "react-fast-marquee";
+import PluginList from "../components/shared/PluginList";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -213,11 +214,12 @@ export default function CreatePage() {
           </h1>
         </div>
 
-        <div className="flex gap-4 mb-4 items-center">
-          <p className="text-sm font-semibold text-black/50 w-24">Data Source</p>
+        <div className="flex gap-4 mb-4 items-center overflow-hidden">
+          {/* <p className="text-sm font-semibold text-black/50 w-24">Data Source</p>
           <div className="w-full bg-white rounded-md border h-12 flex items-center overflow-hidden">
             <MarqueeComponent />
-          </div>
+          </div> */}
+          <PluginList />
         </div>
 
         <div className="space-y-6">
@@ -251,7 +253,7 @@ export default function CreatePage() {
             <div className="flex mt-3 text-sm font-medium">
               <div className="w-56 ml-4">Symbol</div>
               <div className="w-56 ml-6">Variable Name</div>
-              <div className="w-56 ml-7">Description(optional)</div>
+              <div className="w-56 ml-7">Description (optional)</div>
             </div>
             <CardBody>
               {variables.length > 0 ? (
