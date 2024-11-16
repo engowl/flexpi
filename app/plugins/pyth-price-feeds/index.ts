@@ -92,19 +92,7 @@ export const getRealTimePriceOracleTool = tool(async ({ query, assetType }) => {
   }
 }, {
   name: "get_realtime_price_oracle",
-  description: `Fetches real-time price data from Pyth Network Oracle for financial assets. This tool should be used when:
-    1. You need current market prices for:
-       - Stocks/Equities (use assetType 'equity'): e.g., 'AAPL', 'MSFT', 'GOOGL'
-       - Forex/Currency pairs (use assetType 'fx'): e.g., 'EUR' for EUR/USD, 'GBP' for GBP/USD
-       - Commodities/Metals (use assetType 'metal'): e.g., 'XAU' for gold, 'XAG' for silver
-    2. You need both the current price and confidence interval
-    3. You need additional metadata about the asset
-    
-    The tool returns a structured response including:
-    - Current price
-    - Confidence interval
-    - Asset metadata (symbol, description, display symbol)
-    - Asset type and base currency`,
+  description: `Fetches real-time price data from the Pyth Network Oracle for financial assets like stocks, currencies, and commodities. This tool provides the current price, confidence interval, and asset metadata including symbol, description, display symbol, and asset type.`,
   schema: z.object({
     query: z.string().describe("The asset symbol to query. Examples: 'AAPL' for Apple stock, 'EUR' for EUR/USD rate, 'XAU' for gold. Enter only the base symbol without special characters or currency pairs."),
     assetType: z.string().describe("The type of asset being queried. Must be one of: 'equity' (for stocks like AAPL, MSFT), 'fx' (for currency pairs like EUR/USD), or 'metal' (for commodities like XAU/USD for gold)."),
@@ -141,18 +129,7 @@ export const getPriceFeedsTool = tool(async ({ query, assetType }) => {
   }
 }, {
   name: 'get_price_feeds',
-  description: `Retrieves detailed price feed information from Pyth Network Oracle. This tool should be used when:
-    1. You need to verify if a particular asset is available on Pyth Network
-    2. You need detailed metadata about an asset's price feed, including:
-       - Feed ID (unique identifier)
-       - Asset attributes
-       - Price feed specifications
-    3. You're working with:
-       - Stocks/Equities (use assetType 'equity'): e.g., 'AAPL', 'MSFT', 'GOOGL'
-       - Forex/Currency pairs (use assetType 'fx'): e.g., 'EUR' for EUR/USD, 'GBP' for GBP/USD
-       - Commodities/Metals (use assetType 'metal'): e.g., 'XAU' for gold, 'XAG' for silver
-    
-    Returns complete feed information in a structured format, including the unique feed ID required for other API operations.`,
+  description: `Retrieves detailed price feed information from the Pyth Network Oracle. This tool can be used to verify asset availability and get metadata on the price feed, including the unique feed ID, asset attributes, and feed specifications. It supports stocks, currencies, and commodities.`,
   schema: z.object({
     query: z.string().describe("The asset symbol to query. Examples: 'AAPL' for Apple stock, 'EUR' for EUR/USD rate, 'XAU' for gold. Enter only the base symbol without special characters or currency pairs."),
     assetType: z.string().describe("The type of asset being queried. Must be one of: 'equity' (for stocks like AAPL, MSFT), 'fx' (for currency pairs like EUR/USD), or 'metal' (for commodities like XAU/USD for gold)."),

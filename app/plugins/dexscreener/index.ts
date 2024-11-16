@@ -44,7 +44,7 @@ export const metadata: PluginMetadata = {
 export const searchPairsTool = tool(async ({ query }) => {
   try {
     console.log(`\n\n========== Calling DexScreener Search Pairs with query: ${query} ==========\n\n`);
-    
+
     // Remove the '$' symbol if present in the query
     const sanitizedQuery = query.replace(/^\$/, '').trim();
 
@@ -80,27 +80,7 @@ export const searchPairsTool = tool(async ({ query }) => {
   }
 }, {
   name: "search_pairs",
-  description: `
-    Searches for trading pairs or tokens on DexScreener based on a text query, such as a token name, symbol, or partial identifier (e.g., "ETH", "BTC", or "MOG").
-    
-    Requirements:
-    - Input must be a text string representing a token name, symbol, or keyword.
-    - The '$' symbol (e.g., "$MOG") will automatically be removed if present in the query.
-
-    Features:
-    - Retrieves matching trading pairs or tokens with key metrics:
-      - Token address (useful for subsequent 'get_pairs_by_token' calls).
-      - Token name and symbol.
-      - Blockchain or decentralized exchange (DEX) where the pair is traded.
-      - Real-time token price in USD and native currencies.
-      - 24-hour trading volume and price change percentage.
-      - Liquidity data, including total liquidity in USD.
-    - Highlights up to three most relevant matches, focusing on high-volume and well-established pairs.
-
-    Use Cases:
-    - When the user provides a token symbol (e.g., "$MOG") or name but no token address.
-    - When exploring trading pairs for a token across different blockchains or DEXs.
-    - As a preliminary step to identify the token address for further analysis.`,
+  description: `Searches for trading pairs or tokens on DexScreener based on a text query, such as a token name, symbol, or partial identifier. Retrieves key metrics for matching pairs/tokens including address, name, symbol, blockchain, price, volume, and liquidity. Highlights the top 3 most relevant results. This is useful when the user provides a token symbol or name but no address, or for exploring trading pairs across different blockchains and DEXs.`,
   schema: z.object({
     query: z.string().describe("The text query to search for trading pairs (e.g., token symbol or name)."),
   }),
@@ -115,7 +95,7 @@ export const getPairsByTokenTool = tool(async ({ tokenAddresses }) => {
     if (pairs.length === 0) return JSON.stringify("No trading pairs found for the provided token address.");
 
     // Return detailed data for a few pairs
-    const formattedPairs = pairs.slice(0, 3).map((pair:any) => ({
+    const formattedPairs = pairs.slice(0, 3).map((pair: any) => ({
       pairAddress: pair.pairAddress,
       baseToken: pair.baseToken,
       quoteToken: pair.quoteToken,
@@ -126,32 +106,13 @@ export const getPairsByTokenTool = tool(async ({ tokenAddresses }) => {
     }));
 
     return JSON.stringify(formattedPairs);
-  } catch (error:any) {
+  } catch (error: any) {
     console.error('Error getting pairs by token:', error);
     return `Error getting pairs: ${error.message}`;
   }
 }, {
   name: "get_pairs_by_token",
-  description: `
-    Retrieves trading pairs associated with a specific token address on DexScreener.
-
-    Requirements:
-    - Input must be a valid token address (e.g., "0x123...abc").
-    - This tool cannot be used with just a token symbol or name; the address is mandatory.
-
-    Features:
-    - Fetches all trading pairs for the provided token address with key metrics:
-      - Pair address and identifiers.
-      - Base and quote tokens, including token addresses and names.
-      - Token price in USD and native currencies.
-      - 24-hour trading volume and price changes.
-      - Total liquidity in USD and pooled token amounts.
-    - Useful for analyzing token-specific markets across multiple blockchains or DEXs.
-
-    Use Cases:
-    - When the token address is already available, enabling precise data retrieval for its associated trading pairs.
-    - Analyzing a token's trading activity, liquidity, and volume across various platforms.
-    - Supporting arbitrage strategies by comparing data for multiple trading pairs of the same token.`,
+  description: `Retrieves trading pairs associated with a specific token address on DexScreener. Requires a valid token address as input. Fetches all trading pairs for the token with key metrics including pair address, base/quote tokens, prices, volume, and liquidity. This is useful for analyzing a token's trading activity, liquidity, and arbitrage opportunities across multiple blockchains and DEXs.`,
   schema: z.object({
     tokenAddresses: z.string().describe("A single token address or multiple comma-separated token addresses."),
   }),

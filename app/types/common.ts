@@ -1,6 +1,7 @@
 export interface Schema {
   query: string;
   items: SchemaItem[];
+  variables?: SchemaVariable[];
 }
 
 interface SchemaItem {
@@ -11,3 +12,10 @@ interface SchemaItem {
   subItems?: SchemaItem[];
   enabled?: boolean;
 }
+
+export interface SchemaVariable {
+  key: string;
+  value: string;
+  description?: string;
+}
+

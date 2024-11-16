@@ -6,13 +6,14 @@ import {
 } from "fastify";
 import { Schema } from "../types/common";
 import { pluginRegistry } from "../plugins/plugin-registry";
-import { schemaToPrompt } from "../core/utils/schema";
+import { interpolateVariables, schemaToPrompt } from "../core/utils/schema";
 import { run } from "../core/FlexPiEngine";
 import { logAPICall } from "./helpers/logging";
 import { generateCallId } from "../utils/apiUtils";
 import generateApiKey from "../utils/apiUtils";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { prismaClient } from "../lib/prisma";
+import { sleep } from "../utils/miscUtils";
 
 export const apiRoutes: FastifyPluginCallback = (
   app: FastifyInstance,
@@ -47,15 +48,24 @@ export const apiRoutes: FastifyPluginCallback = (
     }
   });
 
-  app.post("/call", async (request, reply) => {
+  app.post("/call", {
+    preHandler: [authMiddleware],
+  }, async (request, reply) => {
     try {
-      const { query, items } = request.body as Schema;
+      const { userId } = (request as any).user;
 
-      const schemaPrompt = schemaToPrompt({ query, items });
+      // TODO: Validate the API call amount here
+
+      const schema = request.body as Schema;
+
+      const interpolatedSchema = interpolateVariables(schema);
+      console.log("interpolated", interpolatedSchema);
+
+      const schemaPrompt = schemaToPrompt(interpolatedSchema)
       console.log("schemaPrompt", schemaPrompt);
 
       const prompt = `
-        User Query: ${query}
+        User Query: ${interpolatedSchema.query}
         ${schemaPrompt}
       `;
 
@@ -75,16 +85,56 @@ export const apiRoutes: FastifyPluginCallback = (
 
       const duration = Math.round(performance.now() - start);
 
-      // logAPICall({
-      //   userId: '123',
-      //   schema: { query, items },
-      //   duration: duration,
-      //   response: res,
-      // })
+      logAPICall({
+        userId: userId,
+        schema: schema,
+        duration: duration,
+        response: res,
+      })
 
-      return res;
+      const response = {
+        duration: duration,
+        data: res
+      }
+
+      return response;
     } catch (error) {
       console.log("/call error", error);
+      return reply.code(500).send({
+        error: "Internal Server Error",
+      });
+    }
+  });
+
+  app.post("/call/dummy", {
+    preHandler: [authMiddleware],
+  }, async (request, reply) => {
+    try {
+      const { userId } = (request as any).user;
+
+      const schema = request.body as Schema;
+      // await sleep(3000);
+      const res = {
+        "hello": "world"
+      }
+
+      await sleep(2000);
+
+      logAPICall({
+        userId: userId,
+        schema: schema,
+        duration: 2000,
+        response: res,
+      })
+
+      const response = {
+        duration: 2000,
+        data: res
+      }
+
+      return response;
+    } catch (error) {
+      console.log("/call/test error", error);
       return reply.code(500).send({
         error: "Internal Server Error",
       });
@@ -209,6 +259,49 @@ export const apiRoutes: FastifyPluginCallback = (
     }
   );
 
+  app.get(
+    "/stats",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const { userId } = (request as any).user;
+
+      try {
+        const user = await prismaClient.user.findUnique({
+          where: {
+            id: userId,
+          },
+          include: {
+            apiKey: true,
+          },
+        });
+
+        if (!user) {
+          return reply.status(400).send({
+            message: "User not found, please register first",
+            data: null,
+          });
+        }
+
+        const apiStatsData = {
+          apiKey: user.apiKey?.key ?? null,
+          apiKeyMaxLimit: user.apiKey?.maxLimit ?? null,
+          apiKeyCurrentUsage: user.apiKey?.usageCount ?? null,
+        };
+
+        return {
+          data: apiStatsData,
+          message: "Succes getting API stats",
+        };
+      } catch (e) {
+        console.log("Error while getting API stats", e);
+        return reply.status(500).send({
+          message: "Error while getting API stats",
+          data: null,
+        });
+      }
+    }
+  );
+
   interface LibraryQuerystring {
     page?: number;
     take?: number;
@@ -251,73 +344,6 @@ export const apiRoutes: FastifyPluginCallback = (
             hasMore: skip + libraries.length < total,
           },
           message: "Libraries retrieved successfully",
-        };
-      } catch (error) {
-        console.error("Error fetching libraries:", error);
-        return reply.status(500).send({
-          data: null,
-          message: "An error occurred while fetching libraries",
-          error: process.env.NODE_ENV === "development" ? error : undefined,
-        });
-      }
-    }
-  );
-
-  app.get(
-    "/user-library",
-    {
-      preHandler: [authMiddleware],
-    },
-    async (
-      request: FastifyRequest<{
-        Querystring: LibraryQuerystring;
-      }>,
-      reply: FastifyReply
-    ) => {
-      const { userId } = (request as any).user;
-      const page = Math.max(1, request.query.page || 1);
-      const take = Math.min(100, Math.max(1, request.query.take || 30));
-      const skip = (page - 1) * take;
-      const status = request.query.status || "all";
-      const sortBy = request.query.sortBy || "createdAt";
-      const order = request.query.order || "desc";
-
-      try {
-        const user = await prismaClient.user.findFirst({
-          where: {
-            id: userId,
-          },
-        });
-
-        if (!user) {
-          reply.status(404).send({
-            data: null,
-            message: "User not found",
-          });
-        }
-
-        const [libraries, total] = await Promise.all([
-          prismaClient.library.findMany({
-            where: { userId },
-            orderBy: {
-              [sortBy]: order,
-            },
-            skip,
-            take,
-          }),
-          prismaClient.library.count({ where: { userId } }),
-        ]);
-
-        return {
-          data: libraries,
-          pagination: {
-            page,
-            take,
-            total,
-            totalPages: Math.ceil(total / take),
-            hasMore: skip + libraries.length < total,
-          },
-          message: "User libraries retrieved successfully",
         };
       } catch (error) {
         console.error("Error fetching libraries:", error);
