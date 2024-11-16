@@ -81,6 +81,16 @@ export default function CreatePage() {
       // set variable
       setVariables(libraryTemplate.schema.variables);
 
+      // Set all items to isEnabled
+      libraryTemplate.schema.items.forEach((item) => {
+        item.isEnabled = true;
+        if (item.subItems) {
+          item.subItems.forEach((subItem) => {
+            subItem.isEnabled = true;
+          });
+        }
+      });
+
       // set data structure
       setFields(libraryTemplate.schema.items);
     }
@@ -335,7 +345,7 @@ export default function CreatePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="w-full">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-neuton tracking-tight">
+            <h1 className="text-4xl font-neuton tracking-tight">
               Generate API Using Simple Prompts and Data Structure
             </h1>
           </div>
@@ -348,7 +358,7 @@ export default function CreatePage() {
             <PluginList />
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 mt-8">
             <div className="space-y-2">
               <Tooltip placement="bottom-start" content={<GuideTooltip />}>
                 <div className="relative">

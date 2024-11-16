@@ -119,7 +119,11 @@ const HistoryPage = () => {
 
       {/* Modal for displaying item details */}
       {selectedItem && (
-        <Modal isOpen={isModalOpen} onOpenChange={handleCloseModal}>
+        <Modal
+          className="w-full max-w-3xl"
+          isOpen={isModalOpen} 
+          onOpenChange={handleCloseModal}
+        >
           <ModalContent>
             <>
               <ModalHeader className="flex flex-col gap-1">

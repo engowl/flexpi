@@ -7,7 +7,7 @@ export default function LoginPage() {
       <AsciiFlame />
 
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center text-center mb-5 gap-3">
+        <div className="flex flex-col items-center text-center mb-8 gap-3">
           <img src="/assets/flexpi-logo.png" className="w-36" />
           <p className="font-neuton text-xl text-neutral-500">
             Redefining APIs, Simplifying Data
