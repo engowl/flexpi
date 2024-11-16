@@ -31,6 +31,7 @@ import PluginList from "../components/shared/PluginList";
 import axios from "axios";
 import { flexpiAPI } from "../api/flexpi";
 import toast from "react-hot-toast";
+import { useUser } from "../providers/UserProvider";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -39,6 +40,8 @@ export default function CreatePage() {
   const [generatedSchema, setGeneratedSchema] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
+
+  const { apiStats } = useUser();
   const [apiName, setApiName] = useState("");
   const [saveLoading, setSaveLoading] = useState(false);
 
@@ -236,9 +239,17 @@ export default function CreatePage() {
       // });
 
       // Dummy
-      const res = await flexpiAPI.post("/api/call/dummy", {
-        ...JSON.parse(generatedSchema),
-      });
+      const res = await flexpiAPI.post(
+        "/api/call/dummy",
+        {
+          ...JSON.parse(generatedSchema),
+        },
+        {
+          headers: {
+            "Flex-api-key": apiStats.apiKey,
+          },
+        }
+      );
 
       setResponse(res.data);
 
@@ -691,7 +702,18 @@ export default function CreatePage() {
                 <CardBody>
                   {isLoading ? (
                     <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
-                      <Spinner size="lg" color="primary" />
+                      {import.meta.env.VITE_MEME_LOADING === "true" ?
+                        <div className="flex flex-col items-center">
+                          <video autoPlay loop className="w-1/2 rounded-xl">
+                            <source src="/assets/video/meme_loading.mp4" type="video/mp4" />
+                          </video>
+                          <div className="text-center font-semibold mt-4 animate-pulse text-2xl">
+                            Our AI working in the background be like...
+                          </div>
+                        </div>
+                        :
+                        <Spinner size="lg" color="primary" />
+                      }
                     </div>
                   ) : response !== null ? (
                     <JsonView
