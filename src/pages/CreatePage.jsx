@@ -24,6 +24,7 @@ import {
   ModalFooter,
   Textarea,
 } from "@nextui-org/react";
+import { IoClose } from "react-icons/io5";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
 import { monokaiTheme } from "@uiw/react-json-view/monokai";
@@ -33,6 +34,7 @@ import toast from "react-hot-toast";
 import { useUser } from "../providers/UserProvider";
 import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
+import { BiSolidCopy } from "react-icons/bi";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -364,9 +366,17 @@ export default function CreatePage() {
 
   const [endpointPreview, setEndpointPreview] = useState("");
 
+  const ensVariable = useMemo(
+    () => variables.find((variable) => variable.key.trim() === "ens"),
+    [variables]
+  );
+
+  console.log({ variables, ensVariable });
+
   const handleGenerateEndpointPreview = () => {
-    // If params is ens, value is abc,
-    // Then it will be like http://localhost:5700/api/<api-id>/call?ens=abc
+    return `http://localhost:5700/api/${libraryId}/call${
+      ensVariable ? "?ens=" + (ensVariable.value || "empty") : ""
+    }`;
   };
 
   return (
@@ -464,15 +474,31 @@ export default function CreatePage() {
               </CardBody>
             </Card>
 
-            <Card className="px-4 py-3" shadow="none">
-              <CardHeader className="border-b">
-                <h1 className="font-neuton text-xl">Endpoint Preview</h1>
-              </CardHeader>
+            {isTemplate && (
+              <Card className="px-4 py-3" shadow="none">
+                <CardHeader className="border-b">
+                  <h1 className="font-neuton text-xl">Endpoint Preview</h1>
+                </CardHeader>
 
-              <CardBody>
-                <div></div>
-              </CardBody>
-            </Card>
+                <CardBody>
+                  <div className="px-4 py-3 rounded-lg bg-default-100 relative">
+                    {handleGenerateEndpointPreview()}
+
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          handleGenerateEndpointPreview()
+                        );
+                        toast.success("Endpoint preview is copied");
+                      }}
+                      className="absolute top-4 right-4"
+                    >
+                      <BiSolidCopy className="text-[#767676] size-[16px]" />
+                    </button>
+                  </div>
+                </CardBody>
+              </Card>
+            )}
 
             <Card className="px-4 py-3" shadow="none">
               <CardHeader className="justify-between border-b">
@@ -547,33 +573,41 @@ export default function CreatePage() {
               isOpen={isOpen}
               onOpenChange={onOpenChange}
               placement="top-center"
+              hideCloseButton
             >
               <ModalContent>
                 {(onClose) => (
                   <>
-                    <ModalHeader className="flex flex-col gap-1">
-                      Save your API
+                    <ModalHeader className="flex flex-row justify-between">
+                      <p className="font-neuton text-2xl">Create Your FLEXPI</p>
+                      <button
+                        onClick={onClose}
+                        className="p-2 rounded-md bg-[#F6F6F6]"
+                      >
+                        <IoClose className="text-black" size={20} />
+                      </button>
                     </ModalHeader>
-                    <ModalBody>
+                    <ModalBody className="flex flex-col gap-5">
+                      <p className="text-sm text-[#030303]">
+                        Ready to create your own FlexPI? Start by giving your
+                        FlexPI a name, and you’ll be on your way to building
+                        your custom API!
+                      </p>
                       <Input
-                        autoFocus
-                        label="Name"
-                        placeholder="Your API name"
-                        variant="bordered"
+                        label="Your FLEXPI Name"
+                        variant="flat"
                         value={apiName}
                         onChange={handleApiNameChange}
                       />
                     </ModalBody>
                     <ModalFooter>
-                      <Button color="danger" variant="flat" onPress={onClose}>
-                        Close
-                      </Button>
                       <Button
                         color="primary"
                         onClick={handleSaveData}
                         isLoading={saveLoading}
+                        className="text-black w-full font-medium"
                       >
-                        Submit
+                        Create
                       </Button>
                     </ModalFooter>
                   </>
@@ -666,6 +700,7 @@ function RecursiveInput({
           }
           size="sm"
           className="w-24"
+          aria-label="data-type"
           isDisabled={field.subItems && field.subItems.length > 0}
           defaultSelectedKeys={["string"]}
         >
