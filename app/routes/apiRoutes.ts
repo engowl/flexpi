@@ -18,6 +18,7 @@ import { apiKeyLimiterMiddleware } from "./middlewares/apiKeyLimiterMiddleware";
 import axios from "axios";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import jwt from 'jsonwebtoken';
 
 export const apiRoutes: FastifyPluginCallback = (
   app: FastifyInstance,
@@ -162,10 +163,25 @@ export const apiRoutes: FastifyPluginCallback = (
 
   app.get(
     "/:apiId/call",
-    {
-      preHandler: [authMiddleware],
-    }, async (request: FastifyRequest, reply) => {
-      const { userId } = (request as any).user;
+    async (request: FastifyRequest, reply) => {
+      const query = request.query as Record<string, string>;
+      const { apiKey } = query;
+      console.log("apiKey", apiKey);
+
+      const user = await prismaClient.user.findFirst({
+        where: {
+          apiKey: {
+            key: apiKey,
+          }
+        },
+      });
+
+      if (!user) {
+        return reply.code(401).send({
+          message: "Unauthorized",
+        });
+      }
+
       const { apiId } = request.params as any;
       const params = request.query as Record<string, string>;
       const schemaVariables: SchemaVariable[] = convertQueryToSchemaVariables(params);
@@ -222,7 +238,7 @@ export const apiRoutes: FastifyPluginCallback = (
 
       logAPICall({
         libraryId: library.id,
-        userId: userId,
+        userId: user.id,
         schema: library.schema as any,
         duration: duration,
         response: res,
