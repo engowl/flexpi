@@ -68,6 +68,9 @@ model ApiCall {
   userId String
   user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  libraryId String?
+  library Library? @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+
   schema   Json
   response Json
   duration Int
@@ -84,6 +87,8 @@ model Library {
 
   userId String
   user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  apiCalls ApiCall[] 
 
   query  String
   schema Json
