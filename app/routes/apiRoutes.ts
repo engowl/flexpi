@@ -15,6 +15,9 @@ import { authMiddleware } from "./middlewares/authMiddleware";
 import { prismaClient } from "../lib/prisma";
 import { sleep } from "../utils/miscUtils";
 import { apiKeyLimiterMiddleware } from "./middlewares/apiKeyLimiterMiddleware";
+import axios from "axios";
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 export const apiRoutes: FastifyPluginCallback = (
   app: FastifyInstance,
@@ -23,7 +26,7 @@ export const apiRoutes: FastifyPluginCallback = (
 ) => {
   // TODO: Call the API saved to library
   app.get("/:libraryId", async (request, reply) => {
-    const libraryId = request.params as unknown as string;
+    const { libraryId } = request.params as any;
     try {
       const lib = await prismaClient.library.findFirst({
         where: {
@@ -58,9 +61,7 @@ export const apiRoutes: FastifyPluginCallback = (
       try {
         const { userId } = (request as any).user;
 
-        // TODO: Validate the API call amount here
-
-        const schema = request.body as Schema;
+        const { schema, libraryId } = request.body as any;
 
         const interpolatedSchema = interpolateVariables(schema);
         console.log("interpolated", interpolatedSchema);
@@ -90,6 +91,7 @@ export const apiRoutes: FastifyPluginCallback = (
         const duration = Math.round(performance.now() - start);
 
         logAPICall({
+          libraryId: libraryId,
           userId: userId,
           schema: schema,
           duration: duration,
@@ -120,7 +122,7 @@ export const apiRoutes: FastifyPluginCallback = (
       try {
         const { userId } = (request as any).user;
 
-        const schema = request.body as Schema;
+        const { schema, libraryId } = request.body as any;
         // await sleep(3000);
         const res = {
           hello: "world",
@@ -129,6 +131,7 @@ export const apiRoutes: FastifyPluginCallback = (
         await sleep(2000);
 
         logAPICall({
+          libraryId: libraryId,
           userId: userId,
           schema: schema,
           duration: 2000,
@@ -150,20 +153,6 @@ export const apiRoutes: FastifyPluginCallback = (
     }
   );
 
-  // TODO: Call history API
-  // app.get("/history", async (request, reply) => {
-  //   try {
-  //     return {
-  //       message: "Call history",
-  //     };
-  //   } catch (error) {
-  //     console.error(error);
-  //     return reply.code(500).send({
-  //       error: "Internal Server Error",
-  //     });
-  //   }
-  // });
-
   interface SaveSchemaBody {
     name: string;
     schema: Record<string, any>;
@@ -175,17 +164,65 @@ export const apiRoutes: FastifyPluginCallback = (
     {
       preHandler: [authMiddleware],
     },
-    async (request: FastifyRequest<{ Body: SaveSchemaBody }>, reply) => {
+    async (request: FastifyRequest, reply) => {
       const { userId } = (request as any).user;
-      const { schema, name } = request.body;
+      const { schema, name } = request.body as { schema: Schema; name: string };
+
+      // Make description based on the schema
+      const schemaDescription = schemaToPrompt(schema);
+
+      const prompt = `
+        This is the data from the user to create a new API for people to use.
+
+        Name: ${name}
+        User Query: ${schema.query}
+        Schema: ${JSON.stringify(schema.items)}
+
+        Schema Description:
+        ${schemaDescription}
+
+        Based on that, create me a nice, short, and clear description about what this API does. Keep it simple and easy to understand.
+        Only return the description, do need to return anything besides the description, like don't include your sentence or anything else.
+
+        For text that is wrapped with {{ <text> }}, it means that the text is a variable that will be replaced with the actual value when the API is called.
+
+        The functionality will revolves around web3, crypto, and blockchain. So be familiar with terms like swap, transaction, ENS, address, ethereum, The Graph, etc.
+
+        Focus on describing the overall function, don't need to include the small details. Make the description fun and easy to understand, maybe include some emojis to make it more fun. Keep it short and simple.
+
+        Description:
+      `;
+
+      const model = new ChatOpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+        modelName: "gpt-4o-mini",
+        temperature: 0.5,
+        maxTokens: 100,
+      });
+
+      let description: string = "API Description";
+      try {
+        console.log("Generating description");
+        const response = await model.invoke([
+          new SystemMessage(prompt),
+          new HumanMessage(
+            "Please create a description for the API. Only return the short and simple description. Also response in pure plain text, no markdown or anything else."
+          ),
+        ]);
+        description = response.content.toString();
+        console.log("Generated description:", description);
+      } catch (error) {
+        console.error("Error generating description:", error);
+      }
+
       try {
         const savedSchema = await prismaClient.library.create({
           data: {
             userId,
             name,
-            description: "Generated schema",
+            description: description,
             query: schema.query,
-            schema,
+            schema: schema as any,
           },
         });
         return {
@@ -335,7 +372,11 @@ export const apiRoutes: FastifyPluginCallback = (
         const [libraries, total] = await Promise.all([
           prismaClient.library.findMany({
             include: {
-              user: true,
+              user: {
+                include: {
+                  wallet: true,
+                },
+              },
             },
             skip,
             take,
@@ -403,6 +444,60 @@ export const apiRoutes: FastifyPluginCallback = (
           data: null,
           message: "An error occurred while fetching libraries",
           error: process.env.NODE_ENV === "development" ? error : undefined,
+        });
+      }
+    }
+  );
+
+  app.get(
+    "/user-libraries",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const { userId } = (request as any).user;
+
+      try {
+        const user = await prismaClient.user.findUnique({
+          where: {
+            id: userId,
+          },
+          include: {
+            libraries: {
+              include: {
+                apiCalls: {
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        const libraries = user?.libraries.map((library) => {
+          const endpointURL = `http://localhost:3700/api/${library.id}`;
+          const lastCallDate =
+            library.apiCalls.length > 0 ? library.apiCalls[0].createdAt : null;
+          const usageCount = library.apiCalls.length;
+
+          return {
+            ...library,
+            endpointURL,
+            usageCount,
+            lastCallDate,
+          };
+        });
+
+        console.log({ libraries });
+
+        return {
+          data: libraries ?? null,
+          message: "Success getting user library",
+        };
+      } catch (e) {
+        console.log("Error while getting user library", e);
+        return reply.status(500).send({
+          message: "Error while getting user library",
+          data: null,
         });
       }
     }
