@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 body {
-  @apply font-plex;
+  @apply font-plex antialiased;
 }
