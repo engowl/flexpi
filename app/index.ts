@@ -45,9 +45,9 @@ console.log(generateApiKey());
 //   query: 'Latest 30 big sell on uniswap v3 pools'
 // })
 
-ensSubgraphTool.func({
-  query: 'ENS info of kelpin.eth',
-})
+// ensSubgraphTool.func({
+//   query: 'kelpin.eth',
+// })
 
 fastify.listen(
   {
