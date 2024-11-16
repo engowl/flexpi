@@ -2,6 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply font-plex antialiased;
+html {
+  @apply font-plex antialiased bg-background !important;
 }
