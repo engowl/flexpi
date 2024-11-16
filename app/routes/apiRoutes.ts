@@ -1,4 +1,9 @@
-import { FastifyInstance, FastifyPluginCallback } from "fastify";
+import {
+  FastifyInstance,
+  FastifyPluginCallback,
+  FastifyReply,
+  FastifyRequest,
+} from "fastify";
 import { Schema } from "../types/common";
 import { pluginRegistry } from "../plugins/plugin-registry";
 import { interpolateVariables, schemaToPrompt } from "../core/utils/schema";
@@ -18,8 +23,22 @@ export const apiRoutes: FastifyPluginCallback = (
 ) => {
   // TODO: Call the API saved to library
   app.get("/:libraryId", async (request, reply) => {
+    const libraryId = request.params as unknown as string
     try {
+      const lib = await prismaClient.library.findFirst({
+        where: {
+          id: libraryId
+        }
+      })
+
+      if(!lib) {
+        return reply.code(40).send({
+          message: "No library found"
+        })
+      }
+
       return {
+        data: lib,
         message: "Hello, World!",
       };
     } catch (error) {
@@ -145,19 +164,42 @@ export const apiRoutes: FastifyPluginCallback = (
     }
   });
 
+  interface SaveSchemaBody {
+    name: string;
+    schema: Record<string, any>;
+  }
+
   // TODO: Save to library API
-  app.post("/save", async (request, reply) => {
-    try {
-      return {
-        message: "Saved to library",
-      };
-    } catch (error) {
-      console.error(error);
-      return reply.code(500).send({
-        error: "Internal Server Error",
-      });
+  app.post(
+    "/save",
+    {
+      preHandler: [authMiddleware],
+    },
+    async (request: FastifyRequest<{ Body: SaveSchemaBody }>, reply) => {
+      const { userId } = (request as any).user;
+      const { schema, name } = request.body;
+      try {
+        const savedSchema = await prismaClient.library.create({
+          data: {
+            userId,
+            name,
+            description: "Generated schema",
+            query: schema.query,
+            schema,
+          },
+        });
+        return {
+          data: savedSchema,
+          message: "Schema saved successfully",
+        };
+      } catch (error) {
+        console.error(error);
+        return reply.code(500).send({
+          error: "Internal Server Error",
+        });
+      }
     }
-  });
+  );
 
   app.post(
     "/create-key",
@@ -264,6 +306,60 @@ export const apiRoutes: FastifyPluginCallback = (
         return reply.status(500).send({
           message: "Error while getting API stats",
           data: null,
+        });
+      }
+    }
+  );
+
+  interface LibraryQuerystring {
+    page?: number;
+    take?: number;
+    status?: "all" | "reading" | "completed" | "plan_to_read";
+    sortBy?: "title" | "createdAt" | "updatedAt";
+    order?: "asc" | "desc";
+  }
+
+  app.get(
+    "/explore",
+    async (
+      request: FastifyRequest<{
+        Querystring: LibraryQuerystring;
+      }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const page = Math.max(1, request.query.page || 1);
+        const take = Math.min(100, Math.max(1, request.query.take || 30));
+        const skip = (page - 1) * take;
+
+        const [libraries, total] = await Promise.all([
+          prismaClient.library.findMany({
+            include: {
+              user: true,
+            },
+            skip,
+            take,
+          }),
+          prismaClient.library.count(),
+        ]);
+
+        return {
+          data: libraries,
+          pagination: {
+            page,
+            take,
+            total,
+            totalPages: Math.ceil(total / take),
+            hasMore: skip + libraries.length < total,
+          },
+          message: "Libraries retrieved successfully",
+        };
+      } catch (error) {
+        console.error("Error fetching libraries:", error);
+        return reply.status(500).send({
+          data: null,
+          message: "An error occurred while fetching libraries",
+          error: process.env.NODE_ENV === "development" ? error : undefined,
         });
       }
     }
