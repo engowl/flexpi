@@ -24,6 +24,7 @@ import {
   ModalFooter,
   Textarea,
 } from "@nextui-org/react";
+import { BsStars } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
@@ -552,11 +553,11 @@ export default function CreatePage() {
                 <Button
                   color="primary"
                   onClick={handleRequestData}
-                  className="bg-[#B6FA89] text-[#1F4D00] font-medium"
+                  className="bg-[#B6FA89] text-[#1F4D00] font-medium flex gap-1"
                   isDisabled={!fields.length > 0}
                   isLoading={isLoading}
                 >
-                  <WandSparkles size={18} />
+                  <BsStars size={18} />
                   Request Data
                 </Button>
               </CardFooter>
