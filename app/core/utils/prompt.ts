@@ -76,6 +76,7 @@ export const getParserSystemPrompt = () => {
     `If you got only the token symbol, use the search_pairs tool from DexScreener to get the token address and then use get_pairs_by_token tool to get the token's market data.`,
     `If asked about specific token market cap, focus on the one that have the biggest market cap, volume, and liquidity.`,
     `For the token value or amount stuff, keep in mind to incorporates the decimals of the token. Most token have 18 decimals, but most stablecoin like USDC, USDT, DAI have 6 decimals.`,
+    `For anything that related to scanner link (scanner link for transaction, certain address, etc.). Use Blockscout url for it. Template: https://eth.blockscout.com/tx/<tx_hash>, https://eth.blockscout.com/address/<address>`,
   ];
 
   const prompt = `

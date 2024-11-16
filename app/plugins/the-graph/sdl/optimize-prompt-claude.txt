@@ -1,0 +1,6 @@
+I want to give a whole GraphQL's SDL file from The Graph into the LLM AI. To save the text usage, i want to make it shorter but still keep all the necessary data so the AI don't generete a wrong graphql query. Will give you the SDL file and then you will create an optimized SDL file to give it to another AI.
+I want to optimize it because i feel it can be 'shorten' without losing the necessary details because of some repetitive stuff (especially on filtering and orderBy).
+For example:
+on the filter or order by, there is this kinda template:
+{{key}}_{{filter_type}} -> token1_not_contains_nocase
+The goal is to provide the optimized SDL text but still clear and complete enough so the AI can make an accurate graphql query based on that info

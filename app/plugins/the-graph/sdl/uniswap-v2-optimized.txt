@@ -1,0 +1,203 @@
+"""
+Base Definitions and Common Filter Patterns
+All filterable fields support these patterns based on their type:
+- ID/Int/BigInt/BigDecimal fields support: _eq, _not, _gt, _lt, _gte, _lte, _in, _not_in
+- String fields additionally support: _contains, _not_contains, _starts_with, _ends_with, _contains_nocase etc.
+- Each *_filter type follows this pattern for all its fields
+"""
+
+# Base Definitions
+scalar BigInt
+scalar BigDecimal
+scalar Bytes
+
+directive @entity on OBJECT
+directive @derivedFrom(field: String!) on FIELD_DEFINITION
+directive @subgraphId(id: String!) on OBJECT
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+# Core Types
+type UniswapFactory @entity {
+  id: ID!
+  pairCount: Int!
+  totalVolumeUSD: BigDecimal!
+  totalVolumeETH: BigDecimal!
+  untrackedVolumeUSD: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
+  totalLiquidityETH: BigDecimal!
+  txCount: BigInt!
+}
+
+type Bundle @entity {
+  id: ID!
+  ethPrice: BigDecimal!
+}
+
+type Token @entity {
+  id: ID!
+  symbol: String!
+  name: String!
+  decimals: BigInt!
+  totalSupply: BigInt!
+  tradeVolume: BigDecimal!
+  tradeVolumeUSD: BigDecimal!
+  untrackedVolumeUSD: BigDecimal!
+  txCount: BigInt!
+  totalLiquidity: BigDecimal!
+  derivedETH: BigDecimal
+  tokenDayData: [TokenDayData!]! @derivedFrom(field: "token")
+  pairDayDataBase: [PairDayData!]! @derivedFrom(field: "token0")
+  pairDayDataQuote: [PairDayData!]! @derivedFrom(field: "token1")
+  pairBase: [Pair!]! @derivedFrom(field: "token0")
+  pairQuote: [Pair!]! @derivedFrom(field: "token1")
+}
+
+type Pair @entity {
+  id: ID!
+  token0: Token!
+  token1: Token!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+  totalSupply: BigDecimal!
+  reserveETH: BigDecimal!
+  reserveUSD: BigDecimal!
+  trackedReserveETH: BigDecimal!
+  token0Price: BigDecimal!
+  token1Price: BigDecimal!
+  volumeToken0: BigDecimal!
+  volumeToken1: BigDecimal!
+  volumeUSD: BigDecimal!
+  untrackedVolumeUSD: BigDecimal!
+  txCount: BigInt!
+  createdAtTimestamp: BigInt!
+  createdAtBlockNumber: BigInt!
+  liquidityProviderCount: BigInt!
+  # Relationships
+  liquidityPositions: [LiquidityPosition!]! @derivedFrom(field: "pair")
+  pairHourData: [PairHourData!]! @derivedFrom(field: "pair")
+  mints: [Mint!]! @derivedFrom(field: "pair")
+  burns: [Burn!]! @derivedFrom(field: "pair")
+  swaps: [Swap!]! @derivedFrom(field: "pair")
+}
+
+# Event Types
+type Swap @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pair: Pair!
+  sender: Bytes!
+  from: Bytes!
+  amount0In: BigDecimal!
+  amount1In: BigDecimal!
+  amount0Out: BigDecimal!
+  amount1Out: BigDecimal!
+  to: Bytes!
+  logIndex: BigInt
+  amountUSD: BigDecimal!
+}
+
+type Mint @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pair: Pair!
+  to: Bytes!
+  liquidity: BigDecimal!
+  sender: Bytes
+  amount0: BigDecimal
+  amount1: BigDecimal
+  logIndex: BigInt
+  amountUSD: BigDecimal
+}
+
+type Burn @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pair: Pair!
+  liquidity: BigDecimal!
+  sender: Bytes
+  amount0: BigDecimal
+  amount1: BigDecimal
+  to: Bytes
+  logIndex: BigInt
+  amountUSD: BigDecimal
+  needsComplete: Boolean!
+}
+
+# Time-Based Types
+type PairDayData @entity {
+  id: ID!
+  date: Int!
+  pairAddress: Bytes!
+  token0: Token!
+  token1: Token!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+  totalSupply: BigDecimal
+  reserveUSD: BigDecimal!
+  dailyVolumeToken0: BigDecimal!
+  dailyVolumeToken1: BigDecimal!
+  dailyVolumeUSD: BigDecimal!
+  dailyTxns: BigInt!
+}
+
+type PairHourData @entity {
+  id: ID!
+  hourStartUnix: Int!
+  pair: Pair!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+  totalSupply: BigDecimal
+  reserveUSD: BigDecimal!
+  hourlyVolumeToken0: BigDecimal!
+  hourlyVolumeToken1: BigDecimal!
+  hourlyVolumeUSD: BigDecimal!
+  hourlyTxns: BigInt!
+}
+
+# LP Position Types
+type LiquidityPosition @entity {
+  id: ID!
+  user: User!
+  pair: Pair!
+  liquidityTokenBalance: BigDecimal!
+}
+
+type User @entity {
+  id: ID!
+  liquidityPositions: [LiquidityPosition!]! @derivedFrom(field: "user")
+  usdSwapped: BigDecimal!
+}
+
+# Transaction
+type Transaction @entity {
+  id: ID!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  mints: [Mint]! @derivedFrom(field: "transaction")
+  burns: [Burn]! @derivedFrom(field: "transaction")
+  swaps: [Swap]! @derivedFrom(field: "transaction")
+}
+
+# Query Root
+"""
+Note: All list queries support standard pagination (skip, first) and filtering (where)
+Filter inputs follow patterns described at top of schema
+OrderBy enums contain all fields of the type being queried
+"""
+type Query {
+  uniswapFactory(id: ID!): UniswapFactory
+  tokens(first: Int = 100, skip: Int = 0, where: Token_filter, orderBy: Token_orderBy, orderDirection: OrderDirection): [Token!]!
+  pairs(first: Int = 100, skip: Int = 0, where: Pair_filter, orderBy: Pair_orderBy, orderDirection: OrderDirection): [Pair!]!
+  swaps(first: Int = 100, skip: Int = 0, where: Swap_filter, orderBy: Swap_orderBy, orderDirection: OrderDirection): [Swap!]!
+  burns(first: Int = 100, skip: Int = 0, where: Burn_filter, orderBy: Burn_orderBy, orderDirection: OrderDirection): [Burn!]!
+  mints(first: Int = 100, skip: Int = 0, where: Mint_filter, orderBy: Mint_orderBy, orderDirection: OrderDirection): [Mint!]!
+  pairDayDatas(first: Int = 100, skip: Int = 0, where: PairDayData_filter, orderBy: PairDayData_orderBy, orderDirection: OrderDirection): [PairDayData!]!
+  pairHourDatas(first: Int = 100, skip: Int = 0, where: PairHourData_filter, orderBy: PairHourData_orderBy, orderDirection: OrderDirection): [PairHourData!]!
+}

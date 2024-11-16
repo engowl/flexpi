@@ -18,6 +18,7 @@ import {
   metadata as contractCallerMetadata,
 } from "./contract-caller";
 import {
+  uniswapV2SubgraphTool,
   uniswapV3SubgraphTool,
   ensSubgraphTool,
   metadata as theGraphMetadata,
@@ -57,6 +58,7 @@ class PluginRegistry {
     getUserPostsTool,
 
     /* ------------------------------- The Graph ------------------------------- */
+    uniswapV2SubgraphTool,
     uniswapV3SubgraphTool,
     ensSubgraphTool,
 
