@@ -364,20 +364,39 @@ export default function CreatePage() {
     setApiName(e.target.value);
   };
 
-  const [endpointPreview, setEndpointPreview] = useState("");
-
-  const ensVariable = useMemo(
-    () => variables.find((variable) => variable.key.trim() === "ens"),
-    [variables]
-  );
-
-  console.log({ variables, ensVariable });
-
+  const [finalEndpointPreview, setFinalEndpointPreview] = useState("");
   const handleGenerateEndpointPreview = () => {
-    return `http://localhost:5700/api/${libraryId}/call${
-      ensVariable ? "?ens=" + (ensVariable.value || "empty") : ""
-    }`;
+    const apiKey = apiStats.apiKey;
+    const baseUrl = `http://localhost:3700/api/${libraryId}/call`;
+
+    // If no variables, return just the base URL
+    if (!variables || variables.length === 0) {
+      return baseUrl;
+    }
+
+    // Filter out empty variables and create query string
+    const queryParams = variables
+      .filter(variable => variable.key && variable.key.trim()) // Filter out empty keys
+      .map(variable => {
+        const key = encodeURIComponent(variable.key.trim());
+        const value = encodeURIComponent(variable.value || '');
+        return `${key}=${value}`;
+      })
+      .join('&');
+
+    // Return URL with query parameters if they exist
+    let finalEndpoint = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
+    console.log(finalEndpoint);
+
+    // Add apiKey to the final endpoint
+    finalEndpoint += `&apiKey=${apiKey}`;
+
+    setFinalEndpointPreview(finalEndpoint);
   };
+
+  useEffect(() => {
+    handleGenerateEndpointPreview();
+  }, [variables]);
 
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
@@ -482,20 +501,21 @@ export default function CreatePage() {
 
                 <CardBody>
                   <div className="px-4 py-3 rounded-lg bg-default-100 relative">
-                    {handleGenerateEndpointPreview()}
-
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          handleGenerateEndpointPreview()
-                        );
-                        toast.success("Endpoint preview is copied");
-                      }}
-                      className="absolute top-4 right-4"
-                    >
-                      <BiSolidCopy className="text-[#767676] size-[16px]" />
-                    </button>
+                    {finalEndpointPreview}
                   </div>
+
+                  <Button
+                    color="primary"
+                    className="bg-[#E6FFD6] text-[#2F7004] w-fit ml-auto mt-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        finalEndpointPreview
+                      );
+                      toast.success("Endpoint preview is copied");
+                    }}
+                  >
+                    Copy Endpoint URL
+                  </Button>
                 </CardBody>
               </Card>
             )}
