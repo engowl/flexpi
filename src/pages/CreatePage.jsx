@@ -32,6 +32,8 @@ import axios from "axios";
 import { flexpiAPI } from "../api/flexpi";
 import toast from "react-hot-toast";
 import { useUser } from "../providers/UserProvider";
+import { useSearchParams } from "react-router-dom";
+import useSWR from "swr";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -51,6 +53,38 @@ export default function CreatePage() {
   const [selectedTab, setSelectedTab] = useState("gennedSchema");
 
   const query = useMemo(() => queryParts.join(""), [queryParts]);
+
+  const [searchParams] = useSearchParams();
+  const libraryId = searchParams.get("id");
+
+  const { data: libraryTemplate, isLoading: isLibraryTemplateLoading } = useSWR(
+    libraryId ? `/api/${libraryId}` : null,
+    async (url) => {
+      const { data } = await flexpiAPI.get(url);
+      return data.data;
+    }
+  );
+
+  console.log({
+    libraryId,
+    libraryTemplate,
+  });
+
+  useEffect(() => {
+    if (libraryTemplate) {
+      // set query
+      handleQueryChange({
+        target: {
+          value: libraryTemplate.query,
+        },
+      });
+      // set variable
+      setVariables(libraryTemplate.schema.variables);
+
+      // set data structure
+      setFields(libraryTemplate.schema.items);
+    }
+  }, [libraryTemplate]);
 
   const generateSchema = (currentFields, currentVariables, currentQuery) => {
     // const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, key) => {
@@ -168,6 +202,7 @@ export default function CreatePage() {
   };
 
   const updateVariable = (index, variable) => {
+    console.log({ variable });
     const newVariables = variables.map((v, i) => {
       if (i === index) {
         return { ...v, ...variable };
@@ -688,7 +723,11 @@ export default function CreatePage() {
             selectedKey={selectedTab}
             onSelectionChange={setSelectedTab}
           >
-            <Tab key="gennedSchema" title="Generated Schema" className="font-neuton text-xl">
+            <Tab
+              key="gennedSchema"
+              title="Generated Schema"
+              className="font-neuton text-xl"
+            >
               <Card>
                 <CardBody>
                   <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
@@ -697,7 +736,11 @@ export default function CreatePage() {
                 </CardBody>
               </Card>
             </Tab>
-            <Tab key="response" title="Response" className="font-neuton text-xl">
+            <Tab
+              key="response"
+              title="Response"
+              className="font-neuton text-xl"
+            >
               <Card>
                 <CardBody>
                   {isLoading ? (

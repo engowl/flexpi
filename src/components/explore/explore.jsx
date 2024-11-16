@@ -3,9 +3,10 @@ import { flexpiAPI } from "../../api/flexpi.js";
 import useSWR from "swr";
 import { Spinner } from "@nextui-org/react";
 import { shortenAddress } from "../../utils/style.js";
+import { Link } from "react-router-dom";
 
 export default function Explore() {
-  const { data, mutate, isLoading } = useSWR("/api/explore", async (url) => {
+  const { data, isLoading } = useSWR("/api/explore", async (url) => {
     const { data } = await flexpiAPI.get(url);
     return data.data;
   });
@@ -35,12 +36,17 @@ export default function Explore() {
 
 const Card = ({ lib }) => {
   return (
-    <div className="col-span-12 md:col-span-3 bg-white rounded-lg p-6 flex flex-col gap-2">
+    <Link
+      to={`/create?id=${lib.id}`}
+      className="col-span-12 md:col-span-3 bg-white rounded-lg p-6 flex flex-col gap-2"
+    >
       <div className="relative size-14 rounded-full overflow-hidden">
         <Nounsies address={lib.user.wallet.address} />
       </div>
       <h1 className="font-medium  text-black mt-2">{lib.description}</h1>
-      <p className="text-sm mt-auto">{shortenAddress(lib.user.wallet.address)}</p>
-    </div>
+      <p className="text-sm mt-auto">
+        {shortenAddress(lib.user.wallet.address)}
+      </p>
+    </Link>
   );
 };
