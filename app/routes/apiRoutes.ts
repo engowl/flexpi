@@ -26,18 +26,18 @@ export const apiRoutes: FastifyPluginCallback = (
 ) => {
   // TODO: Call the API saved to library
   app.get("/:libraryId", async (request, reply) => {
-    const libraryId = request.params as unknown as string
+    const libraryId = request.params as unknown as string;
     try {
       const lib = await prismaClient.library.findFirst({
         where: {
-          id: libraryId
-        }
-      })
+          id: libraryId,
+        },
+      });
 
       if (!lib) {
         return reply.code(40).send({
-          message: "No library found"
-        })
+          message: "No library found",
+        });
       }
 
       return {
@@ -205,26 +205,28 @@ export const apiRoutes: FastifyPluginCallback = (
         Focus on describing the overall function, don't need to include the small details. Make the description fun and easy to understand, maybe include some emojis to make it more fun. Keep it short and simple.
 
         Description:
-      `
+      `;
 
       const model = new ChatOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
-        modelName: 'gpt-4o-mini',
+        modelName: "gpt-4o-mini",
         temperature: 0.5,
         maxTokens: 100,
-      })
+      });
 
-      let description: string = 'API Description'
+      let description: string = "API Description";
       try {
-        console.log('Generating description')
+        console.log("Generating description");
         const response = await model.invoke([
           new SystemMessage(prompt),
-          new HumanMessage('Please create a description for the API. Only return the short and simple description. Also response in pure plain text, no markdown or anything else.')
-        ])
-        description = response.content.toString()
-        console.log('Generated description:', description)
+          new HumanMessage(
+            "Please create a description for the API. Only return the short and simple description. Also response in pure plain text, no markdown or anything else."
+          ),
+        ]);
+        description = response.content.toString();
+        console.log("Generated description:", description);
       } catch (error) {
-        console.error('Error generating description:', error)
+        console.error("Error generating description:", error);
       }
 
       try {
@@ -384,7 +386,11 @@ export const apiRoutes: FastifyPluginCallback = (
         const [libraries, total] = await Promise.all([
           prismaClient.library.findMany({
             include: {
-              user: true,
+              user: {
+                include: {
+                  wallet: true,
+                },
+              },
             },
             skip,
             take,
