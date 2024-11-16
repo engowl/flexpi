@@ -206,394 +206,396 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="grid grid-cols-2 mt-24 mx-10 gap-4">
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Generate API Using Simple Prompts and Data Structure
-          </h1>
-        </div>
+    <div className="bg-background pt-32 pb-20 px-5 md:px-10">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Generate API Using Simple Prompts and Data Structure
+            </h1>
+          </div>
 
-        <div className="flex gap-4 mb-4 items-center overflow-hidden">
-          {/* <p className="text-sm font-semibold text-black/50 w-24">Data Source</p>
+          <div className="flex gap-4 mb-4 items-center overflow-hidden">
+            {/* <p className="text-sm font-semibold text-black/50 w-24">Data Source</p>
           <div className="w-full bg-white rounded-md border h-12 flex items-center overflow-hidden">
             <MarqueeComponent />
           </div> */}
-          <PluginList />
-        </div>
-
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Tooltip placement="bottom-start" content={<GuideTooltip />}>
-              <div className="relative">
-                <div
-                  className="absolute inset-0 px-3 py-2 z-20 pointer-events-none font-mono text-sm"
-                  aria-hidden="true"
-                >
-                  {highlightedQuery}
-                </div>
-                <Input
-                  value={query}
-                  onChange={handleQueryChange}
-                  classNames={{
-                    input: "bg-transparent font-mono text-sm",
-                    inputWrapper: "bg-default-100 border border-[#87E64C]",
-                  }}
-                  style={{ color: "transparent", caretColor: "black" }}
-                  placeholder="Use {{variable_name}} syntax to define template variables"
-                />
-              </div>
-            </Tooltip>
+            <PluginList />
           </div>
 
-          <Card className="px-4 py-3">
-            <CardHeader className="border-b">
-              <h1 className="font-medium text-xl">Variables</h1>
-            </CardHeader>
-            <div className="flex mt-3 text-sm font-medium">
-              <div className="w-56 ml-4">Symbol</div>
-              <div className="w-56 ml-6">Variable Name</div>
-              <div className="w-56 ml-7">Description (optional)</div>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Tooltip placement="bottom-start" content={<GuideTooltip />}>
+                <div className="relative">
+                  <div
+                    className="absolute inset-0 px-3 py-2 z-20 pointer-events-none font-mono text-sm"
+                    aria-hidden="true"
+                  >
+                    {highlightedQuery}
+                  </div>
+                  <Input
+                    value={query}
+                    onChange={handleQueryChange}
+                    classNames={{
+                      input: "bg-transparent font-mono text-sm",
+                      inputWrapper: "bg-default-100 border border-[#87E64C]",
+                    }}
+                    style={{ color: "transparent", caretColor: "black" }}
+                    placeholder="Use {{variable_name}} syntax to define template variables"
+                  />
+                </div>
+              </Tooltip>
             </div>
-            <CardBody>
-              {variables.length > 0 ? (
-                <>
-                  {variables.map((variable, index) => (
-                    <div key={index} className="flex mb-4 flex-col">
-                      <div className="grid grid-cols-3 gap-4 items-center">
-                        <div className="text-sm px-3 py-2 w- text-center text-blue-500 bg-blue-200 rounded-xl">
-                          {`{{ ${variable.symbol} }}`}
-                        </div>
-                        <Input
-                          value={variable.name}
-                          onChange={(e) =>
-                            updateVariable(index, { name: e.target.value })
-                          }
-                          placeholder="Variable name"
-                          size="sm"
-                        />
-                        <div className="flex">
+
+            <Card className="px-4 py-3">
+              <CardHeader className="border-b">
+                <h1 className="font-medium text-xl">Variables</h1>
+              </CardHeader>
+              <div className="flex mt-3 text-sm font-medium">
+                <div className="w-56 ml-4">Symbol</div>
+                <div className="w-56 ml-6">Variable Name</div>
+                <div className="w-56 ml-7">Description (optional)</div>
+              </div>
+              <CardBody>
+                {variables.length > 0 ? (
+                  <>
+                    {variables.map((variable, index) => (
+                      <div key={index} className="flex mb-4 flex-col">
+                        <div className="grid grid-cols-3 gap-4 items-center">
+                          <div className="text-sm px-3 py-2 w- text-center text-blue-500 bg-blue-200 rounded-xl">
+                            {`{{ ${variable.symbol} }}`}
+                          </div>
                           <Input
-                            value={variable.description}
+                            value={variable.name}
                             onChange={(e) =>
-                              updateVariable(index, {
-                                description: e.target.value,
-                              })
+                              updateVariable(index, { name: e.target.value })
                             }
-                            placeholder="Description (optional)"
+                            placeholder="Variable name"
                             size="sm"
                           />
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            size="sm"
-                            onClick={() => removeVariable(index)}
-                          >
-                            <Trash2 color="red" className="h-4 w-4" />
-                          </Button>
+                          <div className="flex">
+                            <Input
+                              value={variable.description}
+                              onChange={(e) =>
+                                updateVariable(index, {
+                                  description: e.target.value,
+                                })
+                              }
+                              placeholder="Description (optional)"
+                              size="sm"
+                            />
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              size="sm"
+                              onClick={() => removeVariable(index)}
+                            >
+                              <Trash2 color="red" className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div className="text-center text-sm text-black opacity-60 py-4">
-                  No variables added yet
-                </div>
-              )}
-            </CardBody>
-          </Card>
-
-          <Card className="px-4 py-3">
-            <CardHeader className="justify-between border-b">
-              <h1 className="font-medium text-xl">Response Data Structure</h1>
-              <div className="flex gap-2">
-                <Button variant="solid" size="sm" onClick={resetSchema}>
-                  RESET
-                </Button>
-                <Button
-                  variant="solid"
-                  color="primary"
-                  size="sm"
-                  onClick={addField}
-                  className="bg-[#E6FFD6] text-[#2F7004]"
-                >
-                  ADD
-                </Button>
-              </div>
-            </CardHeader>
-            <div className="flex text-sm font-medium pt-4 text-black/70">
-              <div className="w-16 ml-6">Enable</div>
-              <div className="w-32 ml-2">Field Name</div>
-              <div className="w-24 ml-4">Data Type</div>
-              <div className="w-10 ml-3">Array</div>
-              <div className="w-80 ml-4">Description</div>
-            </div>
-            <CardBody>
-              {fields && fields.length > 0 ? (
-                <>
-                  {fields.map((field, index) => (
-                    <div key={index} className="space-y-0">
-                      <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
-                        <Switch
-                          isSelected={field.isEnabled}
-                          onValueChange={(checked) =>
-                            updateField(index, "isEnabled", checked)
-                          }
-                        />
-                        <Input
-                          value={field.key}
-                          onChange={(e) =>
-                            updateField(index, "key", e.target.value)
-                          }
-                          placeholder="Field Name"
-                          size="sm"
-                          classNames={{
-                            input: "h-8",
-                            base: "w-32",
-                          }}
-                        />
-                        <Select
-                          selectedKeys={[field.dataType]}
-                          defaultSelectedKeys={["string"]}
-                          onChange={(e) =>
-                            updateField(index, "dataType", e.target.value)
-                          }
-                          size="sm"
-                          className="w-24"
-                          label=""
-                          aria-label="Data Type"
-                          isDisabled={
-                            field.subItems && field.subItems?.length > 0
-                          }
-                        >
-                          <SelectItem key="string" value="string">
-                            String
-                          </SelectItem>
-                          <SelectItem key="number" value="number">
-                            Number
-                          </SelectItem>
-                          <SelectItem key="boolean" value="boolean">
-                            Boolean
-                          </SelectItem>
-                          <SelectItem key="object" value="object">
-                            Object
-                          </SelectItem>
-                        </Select>
-                        <Checkbox
-                          isSelected={field.isArray}
-                          onValueChange={(checked) =>
-                            updateField(index, "isArray", checked)
-                          }
-                          size="lg"
-                          classNames={{
-                            icon: "text-[#2F7004]",
-                          }}
-                        />
-                        <Input
-                          value={field.description}
-                          onChange={(e) =>
-                            updateField(index, "description", e.target.value)
-                          }
-                          classNames={{
-                            input: "h-8",
-                            base: "flex-1 min-w-[100px]",
-                          }}
-                          placeholder="Description"
-                          size="sm"
-                        />
-                        {field.dataType === "object" && (
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            size="sm"
-                            onClick={() => handleAddSubItem(index)}
-                            className="bg-[#E6FFD6] text-[#2F7004]"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          size="sm"
-                          onClick={() => removeField(index)}
-                        >
-                          <Trash2 color="red" className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {field.isExpanded && field.subItems && (
-                        <div className="ml-4">
-                          {field.subItems.map((subItem, subIndex) => (
-                            <div key={subIndex} className="w-full border-l">
-                              <div className="p-3">
-                                <div className="flex items-center gap-4">
-                                  <Switch
-                                    isSelected={subItem.isEnabled}
-                                    onValueChange={(checked) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "isEnabled",
-                                        checked
-                                      )
-                                    }
-                                    isDisabled={!field.isEnabled}
-                                  />
-                                  <Input
-                                    value={subItem.key}
-                                    onChange={(e) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "key",
-                                        e.target.value
-                                      )
-                                    }
-                                    isDisabled={!field.isEnabled}
-                                    // className="max-w-[200px]"
-                                    placeholder="Field name"
-                                    size="sm"
-                                    classNames={{
-                                      input: "h-8",
-                                      base: "w-32",
-                                    }}
-                                  />
-                                  <Select
-                                    selectedKeys={[subItem.dataType]}
-                                    defaultSelectedKeys={["string"]}
-                                    onChange={(e) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "dataType",
-                                        e.target.value
-                                      )
-                                    }
-                                    isDisabled={!field.isEnabled}
-                                    size="sm"
-                                    className="w-24"
-                                  >
-                                    <SelectItem key="string" value="string">
-                                      String
-                                    </SelectItem>
-                                    <SelectItem key="number" value="number">
-                                      Number
-                                    </SelectItem>
-                                    <SelectItem key="boolean" value="boolean">
-                                      Boolean
-                                    </SelectItem>
-                                  </Select>
-                                  <Checkbox
-                                    isSelected={subItem.isArray}
-                                    onValueChange={(checked) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "isArray",
-                                        checked
-                                      )
-                                    }
-                                    size="lg"
-                                    classNames={{
-                                      icon: "text-[#2F7004]",
-                                    }}
-                                    isDisabled={!field.isEnabled}
-                                  />
-                                  <Input
-                                    value={subItem.description}
-                                    onChange={(e) =>
-                                      handleUpdateSubItem(
-                                        index,
-                                        subIndex,
-                                        "description",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="flex-1"
-                                    placeholder="Description"
-                                    size="sm"
-                                    isDisabled={!field.isEnabled}
-                                  />
-                                  <Button
-                                    isIconOnly
-                                    variant="light"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleRemoveSubItem(index, subIndex)
-                                    }
-                                  >
-                                    <Trash2 color="red" className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div className="text-center text-sm text-black opacity-60 py-4">
-                  No fields added yet
-                </div>
-              )}
-            </CardBody>
-            <CardFooter className="justify-end">
-              <Button
-                color="primary"
-                onClick={() => alert("ooooooooyyyyyy")}
-                className="bg-[#B6FA89] text-[#1F4D00] font-medium"
-                isDisabled={!fields.length > 0}
-              >
-                <WandSparkles size={18} />
-                Request Data
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-      </div>
-
-      <div className="flex w-full flex-col">
-        <Tabs aria-label="Options" variant="underlined">
-          <Tab key="gennedSchema" title="Generated Schema">
-            <Card>
-              <CardBody>
-                <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
-                  {generatedSchema || "No schema generated yet"}
-                </pre>
-              </CardBody>
-            </Card>
-          </Tab>
-          <Tab key="response" title="Response">
-            <Card>
-              <CardBody>
-                {isLoading ? (
-                  <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
-                    <Spinner size="lg" color="primary" />
-                  </div>
-                ) : response !== null ? (
-                  <JsonView
-                    value={response}
-                    style={monokaiTheme}
-                    collapsed={false}
-                    shortenTextAfterLength={1000}
-                    className="py-4 px-4 rounded-xl"
-                    displayDataTypes={false}
-                    enableClipboard
-                    indentWidth={24}
-                  />
+                    ))}
+                  </>
                 ) : (
-                  <div className="p-4 bg-[#2e2e2e] text-[#797979] rounded-lg font-mono text-sm">
-                    No response yet
+                  <div className="text-center text-sm text-black opacity-60 py-4">
+                    No variables added yet
                   </div>
                 )}
               </CardBody>
             </Card>
-          </Tab>
-        </Tabs>
+
+            <Card className="px-4 py-3">
+              <CardHeader className="justify-between border-b">
+                <h1 className="font-medium text-xl">Response Data Structure</h1>
+                <div className="flex gap-2">
+                  <Button variant="solid" size="sm" onClick={resetSchema}>
+                    RESET
+                  </Button>
+                  <Button
+                    variant="solid"
+                    color="primary"
+                    size="sm"
+                    onClick={addField}
+                    className="bg-[#E6FFD6] text-[#2F7004]"
+                  >
+                    ADD
+                  </Button>
+                </div>
+              </CardHeader>
+              <div className="flex text-sm font-medium pt-4 text-black/70">
+                <div className="w-16 ml-6">Enable</div>
+                <div className="w-32 ml-2">Field Name</div>
+                <div className="w-24 ml-4">Data Type</div>
+                <div className="w-10 ml-3">Array</div>
+                <div className="w-80 ml-4">Description</div>
+              </div>
+              <CardBody>
+                {fields && fields.length > 0 ? (
+                  <>
+                    {fields.map((field, index) => (
+                      <div key={index} className="space-y-0">
+                        <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                          <Switch
+                            isSelected={field.isEnabled}
+                            onValueChange={(checked) =>
+                              updateField(index, "isEnabled", checked)
+                            }
+                          />
+                          <Input
+                            value={field.key}
+                            onChange={(e) =>
+                              updateField(index, "key", e.target.value)
+                            }
+                            placeholder="Field Name"
+                            size="sm"
+                            classNames={{
+                              input: "h-8",
+                              base: "w-32",
+                            }}
+                          />
+                          <Select
+                            selectedKeys={[field.dataType]}
+                            defaultSelectedKeys={["string"]}
+                            onChange={(e) =>
+                              updateField(index, "dataType", e.target.value)
+                            }
+                            size="sm"
+                            className="w-24"
+                            label=""
+                            aria-label="Data Type"
+                            isDisabled={
+                              field.subItems && field.subItems?.length > 0
+                            }
+                          >
+                            <SelectItem key="string" value="string">
+                              String
+                            </SelectItem>
+                            <SelectItem key="number" value="number">
+                              Number
+                            </SelectItem>
+                            <SelectItem key="boolean" value="boolean">
+                              Boolean
+                            </SelectItem>
+                            <SelectItem key="object" value="object">
+                              Object
+                            </SelectItem>
+                          </Select>
+                          <Checkbox
+                            isSelected={field.isArray}
+                            onValueChange={(checked) =>
+                              updateField(index, "isArray", checked)
+                            }
+                            size="lg"
+                            classNames={{
+                              icon: "text-[#2F7004]",
+                            }}
+                          />
+                          <Input
+                            value={field.description}
+                            onChange={(e) =>
+                              updateField(index, "description", e.target.value)
+                            }
+                            classNames={{
+                              input: "h-8",
+                              base: "flex-1 min-w-[100px]",
+                            }}
+                            placeholder="Description"
+                            size="sm"
+                          />
+                          {field.dataType === "object" && (
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              size="sm"
+                              onClick={() => handleAddSubItem(index)}
+                              className="bg-[#E6FFD6] text-[#2F7004]"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            size="sm"
+                            onClick={() => removeField(index)}
+                          >
+                            <Trash2 color="red" className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {field.isExpanded && field.subItems && (
+                          <div className="ml-4">
+                            {field.subItems.map((subItem, subIndex) => (
+                              <div key={subIndex} className="w-full border-l">
+                                <div className="p-3">
+                                  <div className="flex items-center gap-4">
+                                    <Switch
+                                      isSelected={subItem.isEnabled}
+                                      onValueChange={(checked) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "isEnabled",
+                                          checked
+                                        )
+                                      }
+                                      isDisabled={!field.isEnabled}
+                                    />
+                                    <Input
+                                      value={subItem.key}
+                                      onChange={(e) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "key",
+                                          e.target.value
+                                        )
+                                      }
+                                      isDisabled={!field.isEnabled}
+                                      // className="max-w-[200px]"
+                                      placeholder="Field name"
+                                      size="sm"
+                                      classNames={{
+                                        input: "h-8",
+                                        base: "w-32",
+                                      }}
+                                    />
+                                    <Select
+                                      selectedKeys={[subItem.dataType]}
+                                      defaultSelectedKeys={["string"]}
+                                      onChange={(e) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "dataType",
+                                          e.target.value
+                                        )
+                                      }
+                                      isDisabled={!field.isEnabled}
+                                      size="sm"
+                                      className="w-24"
+                                    >
+                                      <SelectItem key="string" value="string">
+                                        String
+                                      </SelectItem>
+                                      <SelectItem key="number" value="number">
+                                        Number
+                                      </SelectItem>
+                                      <SelectItem key="boolean" value="boolean">
+                                        Boolean
+                                      </SelectItem>
+                                    </Select>
+                                    <Checkbox
+                                      isSelected={subItem.isArray}
+                                      onValueChange={(checked) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "isArray",
+                                          checked
+                                        )
+                                      }
+                                      size="lg"
+                                      classNames={{
+                                        icon: "text-[#2F7004]",
+                                      }}
+                                      isDisabled={!field.isEnabled}
+                                    />
+                                    <Input
+                                      value={subItem.description}
+                                      onChange={(e) =>
+                                        handleUpdateSubItem(
+                                          index,
+                                          subIndex,
+                                          "description",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="flex-1"
+                                      placeholder="Description"
+                                      size="sm"
+                                      isDisabled={!field.isEnabled}
+                                    />
+                                    <Button
+                                      isIconOnly
+                                      variant="light"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveSubItem(index, subIndex)
+                                      }
+                                    >
+                                      <Trash2 color="red" className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="text-center text-sm text-black opacity-60 py-4">
+                    No fields added yet
+                  </div>
+                )}
+              </CardBody>
+              <CardFooter className="justify-end">
+                <Button
+                  color="primary"
+                  onClick={() => alert("ooooooooyyyyyy")}
+                  className="bg-[#B6FA89] text-[#1F4D00] font-medium"
+                  isDisabled={!fields.length > 0}
+                >
+                  <WandSparkles size={18} />
+                  Request Data
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+
+        <div className="flex w-full flex-col">
+          <Tabs aria-label="Options" variant="underlined">
+            <Tab key="gennedSchema" title="Generated Schema">
+              <Card>
+                <CardBody>
+                  <pre className="font-mono text-xs whitespace-pre-wrap py-4 px-6 bg-slate-100 text-slate-500 rounded-2xl">
+                    {generatedSchema || "No schema generated yet"}
+                  </pre>
+                </CardBody>
+              </Card>
+            </Tab>
+            <Tab key="response" title="Response">
+              <Card>
+                <CardBody>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center p-8 bg-gray-50 rounded-xl py-[4rem]">
+                      <Spinner size="lg" color="primary" />
+                    </div>
+                  ) : response !== null ? (
+                    <JsonView
+                      value={response}
+                      style={monokaiTheme}
+                      collapsed={false}
+                      shortenTextAfterLength={1000}
+                      className="py-4 px-4 rounded-xl"
+                      displayDataTypes={false}
+                      enableClipboard
+                      indentWidth={24}
+                    />
+                  ) : (
+                    <div className="p-4 bg-[#2e2e2e] text-[#797979] rounded-lg font-mono text-sm">
+                      No response yet
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </Tab>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
@@ -643,5 +645,5 @@ const MarqueeComponent = () => {
         <img src="/public/assets/twt1.png" />
       </div>
     </Marquee>
-  )
-}
+  );
+};
