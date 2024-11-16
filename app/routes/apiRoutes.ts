@@ -1,13 +1,14 @@
 import { FastifyInstance, FastifyPluginCallback } from "fastify";
 import { Schema } from "../types/common";
 import { pluginRegistry } from "../plugins/plugin-registry";
-import { schemaToPrompt } from "../core/utils/schema";
+import { interpolateVariables, schemaToPrompt } from "../core/utils/schema";
 import { run } from "../core/FlexPiEngine";
 import { logAPICall } from "./helpers/logging";
 import { generateCallId } from "../utils/apiUtils";
 import generateApiKey from "../utils/apiUtils";
 import { authMiddleware } from "./middlewares/authMiddleware";
 import { prismaClient } from "../lib/prisma";
+import { sleep } from "../utils/miscUtils";
 
 export const apiRoutes: FastifyPluginCallback = (
   app: FastifyInstance,
@@ -28,15 +29,24 @@ export const apiRoutes: FastifyPluginCallback = (
     }
   });
 
-  app.post("/call", async (request, reply) => {
+  app.post("/call", {
+    preHandler: [authMiddleware],
+  }, async (request, reply) => {
     try {
-      const { query, items } = request.body as Schema;
+      const { userId } = (request as any).user;
 
-      const schemaPrompt = schemaToPrompt({ query, items });
+      // TODO: Validate the API call amount here
+
+      const schema = request.body as Schema;
+
+      const interpolatedSchema = interpolateVariables(schema);
+      console.log("interpolated", interpolatedSchema);
+
+      const schemaPrompt = schemaToPrompt(interpolatedSchema)
       console.log("schemaPrompt", schemaPrompt);
 
       const prompt = `
-        User Query: ${query}
+        User Query: ${interpolatedSchema.query}
         ${schemaPrompt}
       `;
 
@@ -56,16 +66,56 @@ export const apiRoutes: FastifyPluginCallback = (
 
       const duration = Math.round(performance.now() - start);
 
-      // logAPICall({
-      //   userId: '123',
-      //   schema: { query, items },
-      //   duration: duration,
-      //   response: res,
-      // })
+      logAPICall({
+        userId: userId,
+        schema: schema,
+        duration: duration,
+        response: res,
+      })
 
-      return res;
+      const response = {
+        duration: duration,
+        data: res
+      }
+
+      return response;
     } catch (error) {
       console.log("/call error", error);
+      return reply.code(500).send({
+        error: "Internal Server Error",
+      });
+    }
+  });
+
+  app.post("/call/dummy", {
+    preHandler: [authMiddleware],
+  }, async (request, reply) => {
+    try {
+      const { userId } = (request as any).user;
+
+      const schema = request.body as Schema;
+      // await sleep(3000);
+      const res = {
+        "hello": "world"
+      }
+
+      await sleep(2000);
+
+      logAPICall({
+        userId: userId,
+        schema: schema,
+        duration: 2000,
+        response: res,
+      })
+
+      const response = {
+        duration: 2000,
+        data: res
+      }
+
+      return response;
+    } catch (error) {
+      console.log("/call/test error", error);
       return reply.code(500).send({
         error: "Internal Server Error",
       });

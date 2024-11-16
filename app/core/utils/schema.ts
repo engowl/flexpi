@@ -1,4 +1,4 @@
-import { Schema } from "../../types/common";
+import { Schema, SchemaVariable } from "../../types/common";
 
 interface SchemaItem {
   key: string;
@@ -120,4 +120,26 @@ function generateExampleValue(dataType: string): string {
     default:
       return '""';
   }
+}
+
+function replaceVariables(text: string, variables: SchemaVariable[]): string {
+  return variables.reduce((result, variable) => {
+    const placeholder = `{{${variable.key}}}`;
+    return result.replace(new RegExp(placeholder, 'g'), String(variable.value));
+  }, text);
+}
+
+
+export function interpolateVariables(schema: Schema): Schema {
+  console.log('schema', schema);
+  if (!schema.variables || schema.variables.length === 0) {
+    return schema;
+  }
+
+  const interpolatedSchema = {
+    ...schema,
+    query: replaceVariables(schema.query, schema.variables)
+  };
+
+  return interpolatedSchema;
 }
