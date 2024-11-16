@@ -1,5 +1,6 @@
 import { NextUIProvider } from "@nextui-org/react";
 import DynamicProvider from "./DynamicProvider.jsx";
+import { Toaster } from "react-hot-toast";
 
 /**
  * NOTE
@@ -8,7 +9,10 @@ import DynamicProvider from "./DynamicProvider.jsx";
 export default function RootProvider({ children }) {
   return (
     <DynamicProvider>
-      <NextUIProvider>{children}</NextUIProvider>
+      <NextUIProvider>
+        {children}
+        <Toaster />
+      </NextUIProvider>
     </DynamicProvider>
   );
 }
