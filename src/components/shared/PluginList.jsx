@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Popover, PopoverTrigger, PopoverContent, Tooltip } from '@nextui-org/react';
+import Marquee from 'react-fast-marquee';
 
 const PluginList = () => {
   const pluginsList = [
@@ -89,23 +90,23 @@ const PluginList = () => {
   ];
 
   return (
-    <div>
+    <div className='flex gap-2 max-w-[50vw] w-full'>
       <Tooltip
         content="These are the available plugins that you can use to fetch data from different sources."
         placement="right"
         className='max-w-[16rem]'
         
       >
-        <div className="text-sm opacity-60 mb-1 w-fit">
+        <div className="text-sm opacity-60 mb-1 w-fit font-semibold">
           Available data sources
         </div>
       </Tooltip>
 
-      <div className="grid grid-cols-4 gap-2">
+      <Marquee autoFill className="grid grid-cols-4 rounded-xl" pauseOnHover speed={90}>
         {pluginsList.map((plugin) => (
           <PluginCard key={plugin.id} plugin={plugin} />
         ))}
-      </div>
+      </Marquee>
     </div>
   );
 };
@@ -116,13 +117,13 @@ const PluginCard = ({ plugin }) => {
 
   return (
     <Popover isOpen={isHovered}>
-      <PopoverTrigger>
+      <PopoverTrigger className='mx-2'>
         <div
-          className={`${plugin.bgClass} border-black/10 border p-2 rounded-xl transition-colors cursor-pointer`}
+          className={`${plugin.bgClass} border-black/10 border py-2 px-4 rounded-xl transition-colors cursor-pointer`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center justify-between gap-2">
             <div className="font-medium text-xs">
               {plugin.name}
             </div>
