@@ -20,9 +20,9 @@ const Navbar = () => {
 
   return (
     location.pathname !== "/login" && (
-      <div className="fixed z-50 top-0 w-screen flex justify-between items-center py-3 px-5 md:px-10 bg-white">
+      <div className="fixed z-50 top-0 w-screen flex justify-between items-center px-5 md:px-10 bg-white h-20">
         <div className="flex gap-10 items-center">
-          <Link to={"/"} className="w-16 md:w-24">
+          <Link to={"/"} className="w-16 md:w-20 -mt-4">
             <img
               src="/assets/flexpi-logo.png"
               alt="flexpi-logo"
