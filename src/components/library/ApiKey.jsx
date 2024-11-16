@@ -34,12 +34,14 @@ export default function ApiKey() {
           </h1>
         </div>
         <div className="flex flex-row gap-5 bg-primary/10 px-4 py-2 rounded-lg">
-          <p className="flex-1 font-mono text-sm text-primary-700 font-semibold">
-            flex-
-            {showApiKey
-              ? apiStats.apiKey.replace("flex-", "")
-              : "*".repeat((apiStats.apiKey.length || 10) - 5)}
-          </p>
+          {apiStats.apiKey && (
+            <p className="flex-1 font-mono text-sm text-primary-700 font-semibold">
+              flex-
+              {showApiKey
+                ? apiStats.apiKey.replace("flex-", "")
+                : "*".repeat((apiStats.apiKey.length || 10) - 5)}
+            </p>
+          )}
           <div className="flex flex-row gap-3 items-center">
             <button
               className="text-primary-700"

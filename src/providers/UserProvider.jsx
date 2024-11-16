@@ -9,7 +9,7 @@ const UserContext = createContext({
   library: [],
   userData: {},
   apiStats: {
-    apiKey: "",
+    apiKey: null,
     apiKeyMaxLimit: 0,
     apiKeyCurrentUsage: 0,
   },
@@ -22,7 +22,7 @@ export default function UserProvider({ children }) {
   const [isLibariesLoading, setLibraryLoading] = useState(false);
   const [isApiStatsLoading, setApiStatsLoading] = useState(false);
   const [apiStats, setApiStats] = useState({
-    apiKey: "",
+    apiKey: null,
     apiKeyMaxLimit: 0,
     apiKeyCurrentUsage: 0,
   });
@@ -45,10 +45,14 @@ export default function UserProvider({ children }) {
 
   const fetchApiStats = async () => {
     if (isApiStatsLoading) return;
+
     setApiStatsLoading(true);
     try {
       const res = await flexpiAPI.get(`/api/stats`);
-      setApiStats(res.data.data);
+
+      if (res.data.data.apiKey) {
+        setApiStats(res.data.data);
+      }
     } catch (error) {
       console.error("Error fetching api stats", error);
       toast.error("Error fetching api stats");
