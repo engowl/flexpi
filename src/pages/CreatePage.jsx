@@ -16,6 +16,12 @@ import {
   Checkbox,
   Tooltip,
   Spinner,
+  useDisclosure,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "@nextui-org/react";
 import { Plus, Trash2, WandSparkles } from "lucide-react";
 import JsonView from "@uiw/react-json-view";
@@ -33,10 +39,13 @@ export default function CreatePage() {
   const [generatedSchema, setGeneratedSchema] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
+  const [apiName, setApiName] = useState("");
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   // Tab
   const [selectedTab, setSelectedTab] = useState("gennedSchema");
-
 
   const query = useMemo(() => queryParts.join(""), [queryParts]);
 
@@ -220,7 +229,7 @@ export default function CreatePage() {
       // Set tab to response
       setSelectedTab("response");
 
-      console.log(generatedSchema)
+      console.log(generatedSchema);
       // Real
       // const res = await flexpiAPI.post("/api/call", {
       //   ...JSON.parse(generatedSchema),
@@ -233,14 +242,38 @@ export default function CreatePage() {
 
       setResponse(res.data);
 
-      console.log(res.data)
+      console.log(res.data);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error("Failed to fetch data");
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
+  const handleSaveData = async () => {
+    try {
+      setSaveLoading(true);
+      const rBody = {
+        name: apiName,
+        schema: { ...JSON.parse(generatedSchema) },
+      };
+      console.log(rBody);
+
+      const res = await flexpiAPI.post("/api/save", rBody);
+
+      toast.success(res.data.message);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to save data");
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleApiNameChange = (e) => {
+    setApiName(e.target.value);
+  };
 
   return (
     <div className="bg-background pt-32 pb-20 px-5 md:px-10">
@@ -595,7 +628,49 @@ export default function CreatePage() {
           </div>
         </div>
 
-        <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col relative">
+          <div className="absolute top-1 right-1">
+            <Button size="sm" onPress={onOpen}>
+              SAVE
+            </Button>
+            <Modal
+              isOpen={isOpen}
+              onOpenChange={onOpenChange}
+              placement="top-center"
+            >
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col gap-1">
+                      Save your API
+                    </ModalHeader>
+                    <ModalBody>
+                      <Input
+                        autoFocus
+                        label="Name"
+                        placeholder="Your API name"
+                        variant="bordered"
+                        value={apiName}
+                        onChange={(e) => handleApiNameChange(e)}
+                      />
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button color="danger" variant="flat" onPress={onClose}>
+                        Close
+                      </Button>
+                      <Button
+                        color="primary"
+                        onClick={handleSaveData}
+                        isLoading={saveLoading}
+                      >
+                        Submit
+                      </Button>
+                    </ModalFooter>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
+          </div>
           <Tabs
             aria-label="Options"
             variant="underlined"
@@ -635,11 +710,12 @@ export default function CreatePage() {
                     </div>
                   )}
 
-                  {(response && !isLoading) &&
+                  {response && !isLoading && (
                     <div className="opacity-60 text-sm mt-1 text-right">
-                      Finished in {(response.duration / 1000).toFixed(2)} seconds
+                      Finished in {(response.duration / 1000).toFixed(2)}{" "}
+                      seconds
                     </div>
-                  }
+                  )}
                 </CardBody>
               </Card>
             </Tab>
