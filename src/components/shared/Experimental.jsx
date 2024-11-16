@@ -2,9 +2,11 @@ import { useState } from "react";
 import { flexpiAPI } from "../../api/flexpi.js";
 import toast from "react-hot-toast";
 import { Button } from "@nextui-org/react";
+import { useUser } from "../../providers/UserProvider.jsx";
 
 export default function Experimental() {
   const [isLoading, setIsLoading] = useState(false);
+  const { apiStats } = useUser();
 
   async function createApiKey() {
     setIsLoading(true);
@@ -12,13 +14,13 @@ export default function Experimental() {
     try {
       const { data } = await flexpiAPI.get("/experimental/test", {
         headers: {
-          "Flex-api-key": "flex-4J8DAPBM-HOkavfGg-Ss5TYLZi-KV1CZzeC",
+          "Flex-api-key": apiStats.apiKey,
         },
       });
 
       console.log({ data });
 
-      toast.success("API Key created successfully!");
+      toast.success("API Key test successfully!");
     } catch (error) {
       console.log("failed create api key: ", error);
       toast.error("Failed create api key");
