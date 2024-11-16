@@ -81,7 +81,7 @@ export default function GetStartedDialog() {
         <div className="flex flex-col gap-5 w-full items-center justify-center">
           <img src="/assets/flexpi-logo.png" className="w-32 md:w-40" />
 
-          <h1 className="text-xl font-medium text-[#191919]">
+          <h1 className="text-xl font-neuton text-[#191919]">
             Redefining APIs, Simplifying Data
           </h1>
 

@@ -24,7 +24,7 @@ export default function ApiKey() {
 
   return (
     <div className="flex flex-col w-full gap-10">
-      <h1 className="text-3xl font-bold text-black">Your API Stats</h1>
+      <h1 className="text-3xl font-neuton text-black">Your API Stats</h1>
 
       <div className="flex flex-col gap-5 items-start bg-white rounded-xl p-6 w-full">
         <div className="flex flex-col gap-2 text-sm">

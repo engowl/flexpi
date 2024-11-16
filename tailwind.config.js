@@ -9,7 +9,10 @@ export default {
   ],
   theme: {
     extend: {
-      fontFamily: { plex: ['"IBM Plex Sans"', "sans-serif"] },
+      fontFamily: {
+        plex: ['"IBM Plex Sans"', "sans-serif"],
+        neuton: ["Neuton", "serif"],
+      },
       colors: {
         background: "#F2F2F2",
         primary: {

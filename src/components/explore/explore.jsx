@@ -3,7 +3,7 @@ import Nounsies from "../shared/Nounsies.jsx";
 export default function Explore() {
   return (
     <div className="flex flex-col w-full gap-10">
-      <h1 className="text-3xl font-bold text-black">Explore another FLEXPI</h1>
+      <h1 className="text-3xl font-neuton text-black">Explore another FLEXPI</h1>
 
       <div className="grid grid-cols-12 gap-5">
         {Array.from({ length: 20 }).map((_, idx) => (

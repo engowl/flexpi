@@ -7,7 +7,7 @@ export default function IndexPage() {
     <main className="min-h-screen flex flex-col gap-10 pt-32 pb-20 px-5 md:px-10 bg-[#F2F2F2] overflow-hidden">
       <ApiKey />
       <Library />
-      <Experimental />
+      {/* <Experimental /> */}
     </main>
   );
 }

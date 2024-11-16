@@ -20,7 +20,7 @@ export default function Library() {
   return (
     <div className="flex flex-col w-full gap-10">
       <div className="flex flex-row items-center justify-between">
-        <h1 className="text-3xl font-bold text-black">Your API Library</h1>
+        <h1 className="text-3xl font-neuton text-black">Your API Library</h1>
         <Button
           onClick={() => navigate("/create")}
           color="primary"
