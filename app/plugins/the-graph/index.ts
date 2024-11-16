@@ -172,5 +172,10 @@ export const ensSubgraphTool = tool(async ({ query }) => {
     query: z.string().optional().describe('The detailed natural language query that mentions the what kind of data that want to be fetched from the ENS subgraph and how detailed it should be.'),
   }),
   name: 'ens_subgraph',
-  description: 'Query the ENS subgraph to retrieve detailed information about Ethereum Name Service (ENS) domains, owners, and resolver data. Use this tool to get all data related to ENS.',
+  description: `
+  Query the ENS subgraph to retrieve detailed information about Ethereum Name Service (ENS) domains, owners, and resolver data. Use this tool to get all data related to ENS.
+  Some info:
+  - Watch mainly about the resolved address. If a domain has a resolved address, it means that the domain is pointing to a specific address. And that specific address will be used for another query. 
+  - Don't really mind about any other address like registrant, resolver address, etc. Mainly focus on the resolved address.  
+`,
 })
