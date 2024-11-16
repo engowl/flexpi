@@ -22,6 +22,7 @@ import JsonView from "@uiw/react-json-view";
 import { monokaiTheme } from "@uiw/react-json-view/monokai";
 import Marquee from "react-fast-marquee";
 import PluginList from "../components/shared/PluginList";
+import axios from "axios";
 
 export default function CreatePage() {
   const [queryParts, setQueryParts] = useState([]);
@@ -34,9 +35,9 @@ export default function CreatePage() {
   const query = useMemo(() => queryParts.join(""), [queryParts]);
 
   const generateSchema = (currentFields, currentVariables, currentQuery) => {
-    const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, symbol) => {
-      const variable = currentVariables.find((v) => v.symbol === symbol);
-      return variable ? variable.name || symbol : symbol;
+    const cleanQuery = currentQuery.replace(/{{([^}]+)}}/g, (_, key) => {
+      const variable = currentVariables.find((v) => v.key === key);
+      return variable ? variable.value || key : key;
     });
 
     const cleanFields = fields
@@ -65,8 +66,8 @@ export default function CreatePage() {
       query: cleanQuery,
       items: cleanFields,
       variables: currentVariables.map((v) => ({
-        symbol: v.symbol,
-        name: v.name,
+        key: v.key,
+        value: v.value,
         description: v.description,
       })),
     };
@@ -78,11 +79,11 @@ export default function CreatePage() {
     const regex = /{{([^}]+)}}/g;
     const matches = text.match(regex) || [];
     const newVariables = matches.map((match) => {
-      const symbol = match.slice(2, -2);
-      const existingVariable = variables.find((v) => v.symbol === symbol);
+      const key = match.slice(2, -2);
+      const existingVariable = variables.find((v) => v.key === key);
       return (
         existingVariable || {
-          symbol,
+          key,
           name: "",
           description: "",
         }
@@ -109,8 +110,6 @@ export default function CreatePage() {
       return part;
     });
   }, [queryParts]);
-
-  console.log(highlightedQuery);
 
   const handleQueryChange = (e) => {
     const newQuery = e.target.value;
@@ -162,7 +161,7 @@ export default function CreatePage() {
     const newVariables = variables.filter((_, i) => i !== index);
     setVariables(newVariables);
     const newQueryParts = queryParts.filter(
-      (part) => !part.includes(variables[index].symbol)
+      (part) => !part.includes(variables[index].key)
     );
     setQueryParts(newQueryParts);
     generateSchema(fields, newVariables, newQueryParts.join(""));
@@ -204,6 +203,18 @@ export default function CreatePage() {
     );
     setFields(newFields);
   };
+
+  const handleRequestData = async () => {
+    try {
+      console.log(generatedSchema)
+      const res = await axios.post("http://localhost:3700/ping", generatedSchema
+      )
+
+      alert(res.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <div className="grid grid-cols-2 mt-24 mx-10 gap-4">
@@ -250,10 +261,10 @@ export default function CreatePage() {
             <CardHeader className="border-b">
               <h1 className="font-medium text-xl">Variables</h1>
             </CardHeader>
-            <div className="flex mt-3 text-sm font-medium">
-              <div className="w-56 ml-4">Symbol</div>
-              <div className="w-56 ml-6">Variable Name</div>
-              <div className="w-56 ml-7">Description (optional)</div>
+            <div className="flex mt-3 text-sm font-medium gap-4 mx-4">
+              <div className="w-full">Key</div>
+              <div className="w-full">Variable Name</div>
+              <div className="w-full">Description (optional)</div>
             </div>
             <CardBody>
               {variables.length > 0 ? (
@@ -262,14 +273,14 @@ export default function CreatePage() {
                     <div key={index} className="flex mb-4 flex-col">
                       <div className="grid grid-cols-3 gap-4 items-center">
                         <div className="text-sm px-3 py-2 w- text-center text-blue-500 bg-blue-200 rounded-xl">
-                          {`{{ ${variable.symbol} }}`}
+                          {`{{ ${variable.key} }}`}
                         </div>
                         <Input
-                          value={variable.name}
+                          value={variable.value}
                           onChange={(e) =>
-                            updateVariable(index, { name: e.target.value })
+                            updateVariable(index, { value: e.target.value })
                           }
-                          placeholder="Variable name"
+                          placeholder="Value"
                           size="sm"
                         />
                         <div className="flex">
@@ -544,7 +555,7 @@ export default function CreatePage() {
             <CardFooter className="justify-end">
               <Button
                 color="primary"
-                onClick={() => alert("ooooooooyyyyyy")}
+                onClick={handleRequestData}
                 className="bg-[#B6FA89] text-[#1F4D00] font-medium"
                 isDisabled={!fields.length > 0}
               >
@@ -622,26 +633,3 @@ const GuideTooltip = () => {
     </div>
   );
 };
-
-const MarqueeComponent = () => {
-  return (
-    <Marquee autoFill>
-      <div className="bg-[#E6DAFE] flex gap-2 text-sm items-center px-3 h-8 rounded-lg ml-4">
-        Token Price
-        <img src="/public/assets/tok3.png" />
-      </div>
-      <div className="bg-[#5453D3] flex gap-2 text-sm items-center px-3 h-8 rounded-lg ml-4 text-white">
-        Wallet History
-        <img src="/public/assets/tok1.png" />
-      </div>
-      <div className="bg-[#6747ED] flex gap-2 text-sm items-center px-3 h-8 rounded-lg ml-4 text-white">
-        Holder Count
-        <img src="/public/assets/tok2.png" />
-      </div>
-      <div className="bg-black text-white flex gap-2 text-sm items-center px-3 h-8 rounded-lg ml-4">
-        Market Sentiment
-        <img src="/public/assets/twt1.png" />
-      </div>
-    </Marquee>
-  )
-}
