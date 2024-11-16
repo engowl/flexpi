@@ -10,7 +10,7 @@ import ExplorePage from "../pages/ExplorePage.jsx";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <RootLayout key90 />,
+    element: <RootLayout />,
     children: [
       {
         path: "/",
