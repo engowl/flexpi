@@ -30,11 +30,19 @@ export const router = createBrowserRouter([
       },
       {
         path: "create",
-        element: <CreatePage />,
+        element: (
+          <RouteGuard>
+            <CreatePage />
+          </RouteGuard>
+        ),
       },
       {
         path: "explore",
-        element: <ExplorePage />,
+        element: (
+          <RouteGuard>
+            <ExplorePage />
+          </RouteGuard>
+        ),
       },
     ],
   },
